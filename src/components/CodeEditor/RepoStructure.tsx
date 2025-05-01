@@ -123,12 +123,12 @@ const FileTree: React.FC<FileTreeProps> = ({ structure, level = 0, onFileSelect 
   return <>{renderItems(structure)}</>;
 };
 
-const RepoStructure: React.FC = () => {
-  const handleFileSelect = (filePath: string) => {
-    console.log(`Selected file: ${filePath}`);
-    // Here you can add functionality to load and display the file content
-  };
+// Define props interface for RepoStructure
+interface RepoStructureProps {
+  onFileSelect?: (filePath: string) => void;
+}
 
+const RepoStructure: React.FC<RepoStructureProps> = ({ onFileSelect }) => {
   return (
     <div className="w-64 border-r border-border bg-card">
       <div className="p-2 border-b border-border">
@@ -136,7 +136,7 @@ const RepoStructure: React.FC = () => {
       </div>
       <ScrollArea className="h-[calc(100vh-10rem)]">
         <div className="p-2">
-          <FileTree structure={repoStructure} onFileSelect={handleFileSelect} />
+          <FileTree structure={repoStructure} onFileSelect={onFileSelect} />
         </div>
       </ScrollArea>
     </div>
