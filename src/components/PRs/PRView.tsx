@@ -1,12 +1,30 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { pullRequests } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
-import { Plus, Search } from 'lucide-react';
+import { Plus, Search, ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import PRCard from './PRCard';
+import PRDetail from './PRDetail';
 
 const PRView: React.FC = () => {
+  const [selectedPR, setSelectedPR] = useState<string | null>(null);
+  
+  const handlePRClick = (prId: string) => {
+    setSelectedPR(prId);
+  };
+  
+  const handleBack = () => {
+    setSelectedPR(null);
+  };
+  
+  // Find the selected pull request
+  const selectedPullRequest = pullRequests.find(pr => pr.id === selectedPR);
+  
+  if (selectedPR && selectedPullRequest) {
+    return <PRDetail pullRequest={selectedPullRequest} onClose={handleBack} />;
+  }
+  
   return (
     <div className="h-full p-4 overflow-auto">
       <div className="flex items-center justify-between mb-6">
@@ -28,7 +46,11 @@ const PRView: React.FC = () => {
       
       <div className="space-y-4">
         {pullRequests.map((pr) => (
-          <PRCard key={pr.id} pullRequest={pr} />
+          <PRCard 
+            key={pr.id} 
+            pullRequest={pr} 
+            onClick={() => handlePRClick(pr.id)}
+          />
         ))}
       </div>
     </div>

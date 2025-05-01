@@ -7,9 +7,10 @@ import { GitPullRequest, GitCommit } from 'lucide-react';
 
 interface PRCardProps {
   pullRequest: PullRequest;
+  onClick: () => void;
 }
 
-const PRCard: React.FC<PRCardProps> = ({ pullRequest }) => {
+const PRCard: React.FC<PRCardProps> = ({ pullRequest, onClick }) => {
   const getStatusColor = () => {
     switch(pullRequest.status) {
       case 'open': return 'bg-green-500/20 text-green-500';
@@ -20,7 +21,10 @@ const PRCard: React.FC<PRCardProps> = ({ pullRequest }) => {
   };
   
   return (
-    <Card className="transition-all hover:shadow-md">
+    <Card 
+      className="transition-all hover:shadow-md cursor-pointer hover:bg-accent/10" 
+      onClick={onClick}
+    >
       <CardHeader className="pb-2">
         <div className="flex items-center gap-2">
           <GitPullRequest size={18} className="text-primary" />
