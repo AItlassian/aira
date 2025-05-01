@@ -2,8 +2,9 @@
 import React, { useEffect, useState } from 'react';
 import { documentations } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Ticket, GitPullRequest } from 'lucide-react';
+import { ArrowLeft, GitPullRequest } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface DocumentationDetailProps {
   docId: string;
@@ -63,17 +64,25 @@ const DocumentationDetail: React.FC<DocumentationDetailProps> = ({
             </div>
             
             <div className="flex flex-wrap gap-2">
-              {doc.relatedPRs.map(prId => (
-                <Button 
-                  key={prId} 
-                  variant="outline" 
-                  size="icon"
-                  onClick={() => onViewPR && onViewPR(prId)}
-                  title={`View PR ${prId}`}
-                >
-                  <GitPullRequest size={16} />
-                </Button>
-              ))}
+              <TooltipProvider>
+                {doc.relatedPRs.map(prId => (
+                  <Tooltip key={prId}>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        size="icon"
+                        onClick={() => onViewPR && onViewPR(prId)}
+                        className="bg-primary/10 hover:bg-primary/20"
+                      >
+                        <GitPullRequest size={16} className="text-primary" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>View PR {prId.replace('pr', '')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                ))}
+              </TooltipProvider>
             </div>
           </div>
         </div>
