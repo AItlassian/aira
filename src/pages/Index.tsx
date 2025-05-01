@@ -43,10 +43,18 @@ const Index = () => {
     };
   }, []);
   
+  // Check if we should navigate to code tab based on repo selection
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get('showRepoSelector') === 'true') {
+      setActiveTab('code');
+    }
+  }, [window.location.search]);
+  
   const renderContent = () => {
     switch (activeTab) {
       case 'code':
-        return <CodeEditor />;
+        return <CodeEditor key={window.location.search} />;
       case 'prs':
         return <PRView key={window.location.hash} />;
       case 'tickets':
