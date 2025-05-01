@@ -40,7 +40,6 @@ import {
   GitCommitHorizontal,
   GitPullRequest,
   X,
-  Edit,
   Check,
   ChevronLeft
 } from 'lucide-react';
@@ -97,7 +96,7 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose, onViewComm
     }
   };
   
-  const startEditingTask = (task: Ticket['subtasks'][0]) => {
+  const handleTaskDoubleClick = (task: Ticket['subtasks'][0]) => {
     setEditingTaskId(task.id);
     setEditingTaskTitle(task.title);
   };
@@ -267,9 +266,16 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose, onViewComm
                           onChange={(e) => setEditingTaskTitle(e.target.value)} 
                           className="w-full"
                           autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') saveTaskEdit(task.id);
+                            if (e.key === 'Escape') cancelTaskEdit();
+                          }}
                         />
                       ) : (
-                        <div className={task.status === 'done' ? 'line-through text-muted-foreground' : ''}>
+                        <div 
+                          className={`${task.status === 'done' ? 'line-through text-muted-foreground' : ''} cursor-text`}
+                          onDoubleClick={() => handleTaskDoubleClick(task)}
+                        >
                           {task.title}
                         </div>
                       )}
@@ -335,10 +341,9 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose, onViewComm
                         <Button 
                           variant="ghost" 
                           size="sm" 
-                          className="h-7 w-7 p-0"
-                          onClick={() => startEditingTask(task)}
+                          className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100"
+                          onClick={() => handleTaskDoubleClick(task)}
                         >
-                          <Edit size={16} />
                         </Button>
                       )}
                     </TableCell>
