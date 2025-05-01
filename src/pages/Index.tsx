@@ -8,13 +8,11 @@ import DocumentationView from '@/components/Documentation/DocumentationView';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('code');
-  const [isTransitioning, setIsTransitioning] = useState(false);
   
   useEffect(() => {
     // Handle hash-based navigation for PR links
     const handleHashChange = () => {
       const hash = window.location.hash;
-      setIsTransitioning(true);
       
       // If we're going to a PR detail page from a ticket, switch to PR tab
       if (hash.startsWith('#/prs/')) {
@@ -28,11 +26,6 @@ const Index = () => {
       else if (hash === '#/tickets' || hash.startsWith('#/tickets/')) {
         setActiveTab('tickets');
       }
-      
-      // Reset transition state after a short delay
-      setTimeout(() => {
-        setIsTransitioning(false);
-      }, 50);
     };
     
     // Check on initial load
@@ -51,9 +44,9 @@ const Index = () => {
       case 'code':
         return <CodeEditor />;
       case 'prs':
-        return <PRView key={window.location.hash} isTransitioning={isTransitioning} />;
+        return <PRView key={window.location.hash} />;
       case 'tickets':
-        return <TicketsView key={window.location.hash} isTransitioning={isTransitioning} />;
+        return <TicketsView key={window.location.hash} />;
       case 'docs':
         return <DocumentationView />;
       default:

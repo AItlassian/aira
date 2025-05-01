@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { pullRequests } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
-import { Plus, Search, ArrowLeft } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import PRCard from './PRCard';
 import PRDetail from './PRDetail';
@@ -11,11 +11,10 @@ interface PRViewProps {
   isTransitioning?: boolean;
 }
 
-const PRView: React.FC<PRViewProps> = ({ isTransitioning = false }) => {
+const PRView: React.FC<PRViewProps> = () => {
   const [selectedPR, setSelectedPR] = useState<string | null>(null);
   const [fromTicket, setFromTicket] = useState<boolean>(false);
   const [ticketId, setTicketId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   
   useEffect(() => {
     // Check if there's a PR ID in the URL hash
@@ -62,96 +61,34 @@ const PRView: React.FC<PRViewProps> = ({ isTransitioning = false }) => {
     
     window.addEventListener('hashchange', handleHashChange);
     
-    // Simulate loading for smooth transition
-    setIsLoading(true);
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 100);
-    
     return () => {
       window.removeEventListener('hashchange', handleHashChange);
-      clearTimeout(timer);
     };
   }, []);
   
   const handlePRClick = (prId: string) => {
-    setIsLoading(true);
-    setTimeout(() => {
-      window.location.hash = `#/prs/${prId}`;
-      setSelectedPR(prId);
-      setFromTicket(false);
-      setTicketId(null);
-      setIsLoading(false);
-    }, 50);
+    window.location.hash = `#/prs/${prId}`;
+    setSelectedPR(prId);
+    setFromTicket(false);
+    setTicketId(null);
   };
   
   const handleBack = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      if (fromTicket && ticketId) {
-        window.location.hash = `/tickets/${ticketId}`;
-        setSelectedPR(null);
-      } else {
-        window.location.hash = '/prs';
-        setSelectedPR(null);
-      }
-      setIsLoading(false);
-    }, 50);
+    if (fromTicket && ticketId) {
+      window.location.hash = `/tickets/${ticketId}`;
+      setSelectedPR(null);
+    } else {
+      window.location.hash = '/prs';
+      setSelectedPR(null);
+    }
   };
   
   // Find the selected pull request
   const selectedPullRequest = pullRequests.find(pr => pr.id === selectedPR);
   
-  // If still loading, show a subtle loading state
-  if (isLoading || isTransitioning) {
-    return (
-      <div className="h-full p-4 overflow-auto animate-fade-in">
-        {selectedPullRequest ? (
-          <div className="opacity-50">
-            <PRDetail 
-              pullRequest={selectedPullRequest}
-              onClose={handleBack}
-              fromTicket={fromTicket}
-              ticketId={ticketId}
-            />
-          </div>
-        ) : (
-          <div className="opacity-50">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold">Pull Requests</h2>
-              <div className="flex gap-2">
-                <div className="relative">
-                  <Search size={16} className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
-                  <Input 
-                    placeholder="Search PRs..." 
-                    className="pl-8 h-9" 
-                  />
-                </div>
-                <Button size="sm" className="gap-1">
-                  <Plus size={14} />
-                  <span>New PR</span>
-                </Button>
-              </div>
-            </div>
-            
-            <div className="space-y-4">
-              {pullRequests.map((pr) => (
-                <PRCard 
-                  key={pr.id} 
-                  pullRequest={pr} 
-                  onClick={() => {}}
-                />
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    );
-  }
-  
   if (selectedPR && selectedPullRequest) {
     return (
-      <div className="animate-fade-in">
+      <div>
         <PRDetail 
           pullRequest={selectedPullRequest} 
           onClose={handleBack}
@@ -163,7 +100,7 @@ const PRView: React.FC<PRViewProps> = ({ isTransitioning = false }) => {
   }
   
   return (
-    <div className="h-full p-4 overflow-auto animate-fade-in">
+    <div className="h-full p-4 overflow-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold">Pull Requests</h2>
         <div className="flex gap-2">
