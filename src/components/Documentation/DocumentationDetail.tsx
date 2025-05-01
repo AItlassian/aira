@@ -3,7 +3,6 @@ import React, { useEffect, useState } from 'react';
 import { documentations } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, GitPullRequest } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface DocumentationDetailProps {
@@ -58,9 +57,6 @@ const DocumentationDetail: React.FC<DocumentationDetailProps> = ({
               <div className="text-sm text-muted-foreground">
                 Last updated: {new Date(doc.updatedAt).toLocaleDateString()}
               </div>
-              <Badge variant="outline" className="bg-primary/10 text-primary">
-                {doc.relatedPRs.length} PR{doc.relatedPRs.length > 1 ? 's' : ''}
-              </Badge>
             </div>
             
             <div className="flex flex-wrap gap-2">
