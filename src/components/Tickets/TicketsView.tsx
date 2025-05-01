@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { tickets } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import { Plus, Filter } from 'lucide-react';
@@ -10,8 +10,38 @@ const TicketsView: React.FC = () => {
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const [selectedCommitId, setSelectedCommitId] = useState<string | null>(null);
   
+  useEffect(() => {
+    // Check if there's a ticket ID in the URL hash
+    const hashPath = window.location.hash;
+    if (hashPath.startsWith('#/tickets/')) {
+      const ticketId = hashPath.replace('#/tickets/', '');
+      if (tickets.some(t => t.id === ticketId)) {
+        setSelectedTicketId(ticketId);
+      }
+    }
+    
+    // Add hash change listener to handle navigation
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#/tickets/')) {
+        const ticketId = hash.replace('#/tickets/', '');
+        if (tickets.some(t => t.id === ticketId)) {
+          setSelectedTicketId(ticketId);
+        }
+      } else if (hash === '#/tickets') {
+        setSelectedTicketId(null);
+      }
+    };
+    
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+  
   const handleTicketClick = (ticketId: string) => {
     setSelectedTicketId(ticketId);
+    window.location.hash = `/tickets/${ticketId}`;
   };
   
   const handleViewCommit = (commitId: string) => {
@@ -23,6 +53,7 @@ const TicketsView: React.FC = () => {
       setSelectedCommitId(null);
     } else {
       setSelectedTicketId(null);
+      window.location.hash = '/tickets';
     }
   };
   

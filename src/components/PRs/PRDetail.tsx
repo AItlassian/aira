@@ -17,6 +17,8 @@ import { GitPullRequest, GitCommitHorizontal, FileCode, FileText, X, ChevronLeft
 interface PRDetailProps {
   pullRequest: PullRequest;
   onClose: () => void;
+  fromTicket?: boolean;
+  ticketId?: string | null;
 }
 
 // Mock code diff data
@@ -41,7 +43,7 @@ const mockDiff = `
     }
 `;
 
-const PRDetail: React.FC<PRDetailProps> = ({ pullRequest, onClose }) => {
+const PRDetail: React.FC<PRDetailProps> = ({ pullRequest, onClose, fromTicket = false, ticketId = null }) => {
   const getStatusColor = () => {
     switch(pullRequest.status) {
       case 'open': return 'bg-green-500/20 text-green-500';
@@ -55,14 +57,11 @@ const PRDetail: React.FC<PRDetailProps> = ({ pullRequest, onClose }) => {
   const [selectedCommit, setSelectedCommit] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   
-  // Check if we came from a ticket page
-  const fromTicket = window.location.hash.includes('fromTicket=true');
-  
   // Handle back to PR list navigation
   const handleBackToPRs = () => {
-    if (fromTicket) {
-      // Go back to the ticket detail page
-      window.location.hash = '/tickets'; // Change URL hash to trigger navigation
+    if (fromTicket && ticketId) {
+      // Go back to the specific ticket detail page
+      window.location.hash = `/tickets/${ticketId}`;
       onClose(); // Also call onClose to properly reset UI state
     } else {
       // For normal PR list navigation
@@ -73,8 +72,8 @@ const PRDetail: React.FC<PRDetailProps> = ({ pullRequest, onClose }) => {
   
   // Handle close button click for proper navigation
   const handleClose = () => {
-    if (fromTicket) {
-      window.location.hash = '/tickets'; // Change URL hash first
+    if (fromTicket && ticketId) {
+      window.location.hash = `/tickets/${ticketId}`; // Change URL hash to specific ticket
       onClose(); // Then call onClose to reset UI state
     } else {
       onClose();

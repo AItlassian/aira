@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Ticket, commits } from '@/data/mockData';
 import { 
@@ -122,8 +121,8 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose, onViewComm
   };
   
   const handleViewPR = (prId: string) => {
-    // Navigate directly to the PR view with fromTicket parameter
-    window.location.hash = `/prs/${prId}?fromTicket=true`;
+    // Navigate directly to the PR view with fromTicket parameter and ticket ID
+    window.location.hash = `/prs/${prId}?fromTicket=true&ticketId=${ticket.id}`;
   };
   
   const renderFileDiff = () => {

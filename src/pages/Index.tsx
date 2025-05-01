@@ -22,7 +22,7 @@ const Index = () => {
       else if (hash === '#/prs') {
         setActiveTab('prs');
       }
-      // For ticket navigation
+      // For ticket navigation (both list and detail)
       else if (hash === '#/tickets' || hash.startsWith('#/tickets/')) {
         setActiveTab('tickets');
       }

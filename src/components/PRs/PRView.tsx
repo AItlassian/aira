@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { pullRequests } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import PRDetail from './PRDetail';
 const PRView: React.FC = () => {
   const [selectedPR, setSelectedPR] = useState<string | null>(null);
   const [fromTicket, setFromTicket] = useState<boolean>(false);
+  const [ticketId, setTicketId] = useState<string | null>(null);
   
   useEffect(() => {
     // Check if there's a PR ID in the URL hash
@@ -19,6 +21,12 @@ const PRView: React.FC = () => {
         setSelectedPR(prId);
         // Check if we came from ticket view
         setFromTicket(hashPath.includes('fromTicket=true'));
+        
+        // Extract ticket ID if present
+        const ticketIdMatch = hashPath.match(/ticketId=([^&]+)/);
+        if (ticketIdMatch && ticketIdMatch[1]) {
+          setTicketId(ticketIdMatch[1]);
+        }
       }
     }
     
@@ -30,11 +38,20 @@ const PRView: React.FC = () => {
         if (prId && pullRequests.some(pr => pr.id === prId)) {
           setSelectedPR(prId);
           setFromTicket(hash.includes('fromTicket=true'));
+          
+          // Extract ticket ID if present
+          const ticketIdMatch = hash.match(/ticketId=([^&]+)/);
+          if (ticketIdMatch && ticketIdMatch[1]) {
+            setTicketId(ticketIdMatch[1]);
+          } else {
+            setTicketId(null);
+          }
         }
-      } else if (hash === '#/prs' || hash === '' || hash === '#/tickets') {
+      } else if (hash === '#/prs' || hash === '' || hash.startsWith('#/tickets')) {
         // Reset to PR list view or handle ticket navigation
         setSelectedPR(null);
         setFromTicket(false);
+        setTicketId(null);
       }
     };
     
@@ -49,11 +66,12 @@ const PRView: React.FC = () => {
     window.location.hash = `#/prs/${prId}`;
     setSelectedPR(prId);
     setFromTicket(false);
+    setTicketId(null);
   };
   
   const handleBack = () => {
-    if (fromTicket) {
-      window.location.hash = '/tickets';
+    if (fromTicket && ticketId) {
+      window.location.hash = `/tickets/${ticketId}`;
       setSelectedPR(null);
     } else {
       window.location.hash = '/prs';
@@ -65,7 +83,12 @@ const PRView: React.FC = () => {
   const selectedPullRequest = pullRequests.find(pr => pr.id === selectedPR);
   
   if (selectedPR && selectedPullRequest) {
-    return <PRDetail pullRequest={selectedPullRequest} onClose={handleBack} />;
+    return <PRDetail 
+      pullRequest={selectedPullRequest} 
+      onClose={handleBack}
+      fromTicket={fromTicket}
+      ticketId={ticketId} 
+    />;
   }
   
   return (
