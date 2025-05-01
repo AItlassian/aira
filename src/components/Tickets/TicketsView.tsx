@@ -1,161 +1,107 @@
 import React, { useState, useEffect } from 'react';
-import { Ticket } from '@/types';
+import { tickets } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
-import { Plus, Ticket as TicketIcon } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/components/ui/use-toast';
+import { Plus, Filter } from 'lucide-react';
+import TicketCard from './TicketCard';
+import TicketDetail from './TicketDetail';
 
 interface TicketsViewProps {
-  selectedRepo?: string;
+  isTransitioning?: boolean;
 }
 
-const TicketsView: React.FC<TicketsViewProps> = ({ selectedRepo }) => {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
-
+const TicketsView: React.FC<TicketsViewProps> = () => {
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
+  const [selectedCommitId, setSelectedCommitId] = useState<string | null>(null);
+  
   useEffect(() => {
-    const fetchTickets = async () => {
-      if (!selectedRepo) {
-        setTickets([]);
-        return;
+    // Check if there's a ticket ID in the URL hash
+    const hashPath = window.location.hash;
+    if (hashPath.startsWith('#/tickets/')) {
+      const ticketId = hashPath.replace('#/tickets/', '');
+      if (tickets.some(t => t.id === ticketId)) {
+        setSelectedTicketId(ticketId);
       }
-
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(`http://localhost:8000/repositories/${selectedRepo}/tickets`, {
-          credentials: 'include'
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.detail || 'Failed to fetch tickets');
+    }
+    
+    // Add hash change listener to handle navigation
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#/tickets/')) {
+        const ticketId = hash.replace('#/tickets/', '');
+        if (tickets.some(t => t.id === ticketId)) {
+          setSelectedTicketId(ticketId);
         }
-
-        const data = await response.json();
-        setTickets(data);
-      } catch (error) {
-        console.error('Error fetching tickets:', error);
-        setError(error instanceof Error ? error.message : 'Failed to fetch tickets');
-        toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "Failed to fetch tickets. Please try again.",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
+      } else if (hash === '#/tickets') {
+        setSelectedTicketId(null);
       }
     };
-
-    fetchTickets();
-  }, [selectedRepo, toast]);
-
-  const getStatusColor = (status: Ticket['status']) => {
-    switch (status) {
-      case 'todo':
-        return 'bg-yellow-500/10 text-yellow-500';
-      case 'in-progress':
-        return 'bg-blue-500/10 text-blue-500';
-      case 'review':
-        return 'bg-purple-500/10 text-purple-500';
-      case 'done':
-        return 'bg-green-500/10 text-green-500';
-      default:
-        return 'bg-gray-500/10 text-gray-500';
+    
+    window.addEventListener('hashchange', handleHashChange);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+  
+  const handleTicketClick = (ticketId: string) => {
+    setSelectedTicketId(ticketId);
+    window.location.hash = `/tickets/${ticketId}`;
+  };
+  
+  const handleViewCommit = (commitId: string) => {
+    setSelectedCommitId(commitId);
+  };
+  
+  const handleBack = () => {
+    if (selectedCommitId) {
+      setSelectedCommitId(null);
+    } else {
+      setSelectedTicketId(null);
+      window.location.hash = '/tickets';
     }
   };
-
-  const getPriorityColor = (priority: Ticket['priority']) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-500/10 text-red-500';
-      case 'medium':
-        return 'bg-yellow-500/10 text-yellow-500';
-      case 'low':
-        return 'bg-green-500/10 text-green-500';
-      default:
-        return 'bg-gray-500/10 text-gray-500';
-    }
-  };
-
-  if (!selectedRepo) {
+  
+  // Find the selected ticket
+  const selectedTicket = tickets.find(t => t.id === selectedTicketId);
+  
+  // If a ticket is selected, show the ticket detail view
+  if (selectedTicket) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <p className="text-muted-foreground">Select a repository to view tickets</p>
+      <div className="h-full">
+        <TicketDetail 
+          ticket={selectedTicket} 
+          onClose={handleBack}
+          onViewCommit={handleViewCommit}
+        />
       </div>
     );
   }
-
-  if (loading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <TicketIcon className="mx-auto h-12 w-12 text-red-500 mb-4" />
-          <h3 className="text-lg font-medium mb-2">Error Loading Tickets</h3>
-          <p className="text-muted-foreground">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
+  
+  // Show the ticket list view
   return (
     <div className="h-full p-4 overflow-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold">Tickets</h2>
-        <Button size="sm" className="gap-1">
-          <Plus size={14} />
-          <span>New Ticket</span>
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="gap-1">
+            <Filter size={14} />
+            <span>Filter</span>
+          </Button>
+          <Button size="sm" className="gap-1">
+            <Plus size={14} />
+            <span>New Ticket</span>
+          </Button>
+        </div>
       </div>
       
-      <div className="space-y-4">
-        {tickets.length === 0 ? (
-          <div className="text-center py-8">
-            <TicketIcon className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No tickets found</h3>
-            <p className="text-muted-foreground">Create a new ticket to get started</p>
-          </div>
-        ) : (
-          tickets.map((ticket) => (
-            <Card 
-              key={ticket.id} 
-              className="hover:bg-accent/50 cursor-pointer transition-colors"
-              onClick={() => window.location.hash = `/tickets/${ticket.id}`}
-            >
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">{ticket.title}</CardTitle>
-                  <div className="flex items-center gap-2">
-                    <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(ticket.status)}`}>
-                      {ticket.status}
-                    </span>
-                    <span className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(ticket.priority)}`}>
-                      {ticket.priority}
-                    </span>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span>Created {new Date(ticket.createdAt).toLocaleDateString()}</span>
-                  {ticket.assignee && (
-                    <span>Assigned to {ticket.assignee}</span>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {tickets.map((ticket) => (
+          <TicketCard 
+            key={ticket.id} 
+            ticket={ticket} 
+            onClick={() => handleTicketClick(ticket.id)}
+          />
+        ))}
       </div>
     </div>
   );

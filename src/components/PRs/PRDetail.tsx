@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { PullRequest } from '@/types';
+import { PullRequest } from '@/data/mockData';
 import { 
   Card, 
   CardContent, 
@@ -13,7 +13,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { GitPullRequest, GitCommitHorizontal, FileCode, FileText, X, ChevronLeft, Plus, Minus } from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
 
 interface PRDetailProps {
   pullRequest: PullRequest;
@@ -36,13 +35,11 @@ const PRDetail: React.FC<PRDetailProps> = ({
   const [fileDiff, setFileDiff] = useState<string>('');
   const [prDescription, setPrDescription] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
 
   useEffect(() => {
+    // Fetch PR description from Azure OpenAI
     const fetchPrDescription = async () => {
       setLoading(true);
-      setError(null);
       try {
         const response = await fetch('http://localhost:8000/generate-pr-description', {
           method: 'POST',
@@ -56,74 +53,42 @@ const PRDetail: React.FC<PRDetailProps> = ({
         });
         
         if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.detail || 'Failed to generate PR description');
+          throw new Error('Failed to generate PR description');
         }
         
         const data = await response.json();
         setPrDescription(data.description);
       } catch (error) {
         console.error('Error generating PR description:', error);
-        setError(error instanceof Error ? error.message : 'Failed to generate PR description');
         setPrDescription(pullRequest.description); // Fallback to original description
-        toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "Failed to generate PR description. Using original description.",
-          variant: "destructive"
-        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchPrDescription();
-  }, [pullRequest, toast]);
+  }, [pullRequest]);
 
   const handleFileSelect = async (filePath: string) => {
     setSelectedFile(filePath);
-    setLoading(true);
-    setError(null);
     try {
       const response = await fetch(`http://localhost:8000/repositories/${pullRequest.repo}/contents/${filePath}?ref=${pullRequest.branch}`, {
         credentials: 'include'
       });
       
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || 'Failed to fetch file diff');
+        throw new Error('Failed to fetch file diff');
       }
       
       const data = await response.json();
       setFileDiff(data.diff || '');
     } catch (error) {
       console.error('Error fetching file diff:', error);
-      setError(error instanceof Error ? error.message : 'Failed to fetch file diff');
       setFileDiff('');
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to fetch file changes. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
     }
   };
 
   const renderFileDiff = () => {
-    if (loading) {
-      return (
-        <div className="animate-pulse bg-muted rounded-md h-32"></div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div className="text-center py-4 text-red-500">
-          <p>{error}</p>
-        </div>
-      );
-    }
-
     if (!fileDiff) return null;
 
     return (
@@ -220,8 +185,6 @@ const PRDetail: React.FC<PRDetailProps> = ({
               <div className="text-sm font-medium mb-2">Description</div>
               {loading ? (
                 <div className="animate-pulse bg-muted h-20 rounded-md"></div>
-              ) : error ? (
-                <div className="text-red-500">{error}</div>
               ) : (
                 <p className="text-muted-foreground whitespace-pre-wrap">{prDescription}</p>
               )}

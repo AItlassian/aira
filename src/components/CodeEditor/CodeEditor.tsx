@@ -81,7 +81,7 @@ const CodeEditor: React.FC = () => {
       setLoading(false);
     }
   };
-
+  
   const handleFileSelect = async (filePath: string) => {
     if (!selectedRepo || !selectedBranch) return;
 
@@ -145,7 +145,7 @@ const CodeEditor: React.FC = () => {
       if (!response.ok) {
         const error = await response.json();
         throw new Error(error.detail || 'Failed to save file');
-      }
+    }
 
       toast.success('File saved successfully');
     } catch (error) {

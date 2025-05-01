@@ -10,7 +10,6 @@ from git_manager import GitManager
 from auth import oauth, get_current_user, get_github_token
 import secrets
 import base64
-import aiohttp
 
 # Load environment variables
 load_dotenv()
@@ -512,96 +511,6 @@ async def update_file(
         return update_response.json()
     except Exception as e:
         print(f"Error in update_file: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/repositories/{repo_name:path}/pulls")
-async def get_pull_requests(
-    repo_name: str,
-    current_user: dict = Depends(get_current_user)
-):
-    """Get all pull requests for a repository."""
-    try:
-        # Verify user has access to the repository
-        repo_parts = repo_name.split('/')
-        if len(repo_parts) != 2:
-            raise HTTPException(status_code=400, detail="Invalid repository name format")
-            
-        owner, repo = repo_parts
-        
-        # Get repository access
-        repo_access = await get_repository_access(current_user["id"], repo_name)
-        if not repo_access:
-            raise HTTPException(status_code=403, detail="Access denied to repository")
-            
-        # Get GitHub token
-        github_token = await get_github_token(current_user["id"])
-        if not github_token:
-            raise HTTPException(status_code=401, detail="GitHub token not found")
-            
-        # Fetch pull requests from GitHub
-        headers = {
-            "Authorization": f"token {github_token}",
-            "Accept": "application/vnd.github.v3+json"
-        }
-        
-        async with aiohttp.ClientSession() as session:
-            async with session.get(
-                f"https://api.github.com/repos/{owner}/{repo}/pulls",
-                headers=headers
-            ) as response:
-                if response.status == 404:
-                    raise HTTPException(status_code=404, detail="Repository not found")
-                elif response.status == 403:
-                    raise HTTPException(status_code=403, detail="Access denied to repository")
-                elif response.status != 200:
-                    raise HTTPException(status_code=500, detail="Failed to fetch pull requests")
-                    
-                pulls = await response.json()
-                
-                # Format pull requests
-                formatted_pulls = []
-                for pr in pulls:
-                    # Get commits for the PR
-                    async with session.get(
-                        f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr['number']}/commits",
-                        headers=headers
-                    ) as commits_response:
-                        commits = await commits_response.json() if commits_response.status == 200 else []
-                    
-                    # Get files changed
-                    async with session.get(
-                        f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr['number']}/files",
-                        headers=headers
-                    ) as files_response:
-                        files = await files_response.json() if files_response.status == 200 else []
-                    
-                    formatted_pulls.append({
-                        "id": f"pr{pr['number']}",
-                        "title": pr['title'],
-                        "description": pr['body'] or "",
-                        "author": pr['user']['login'],
-                        "createdAt": pr['created_at'],
-                        "status": "merged" if pr['merged'] else "closed" if pr['state'] == "closed" else "open",
-                        "updatedAt": pr['updated_at'],
-                        "repo": repo_name,
-                        "branch": pr['head']['ref'],
-                        "commits": [{
-                            "id": commit['sha'],
-                            "message": commit['commit']['message'],
-                            "author": commit['commit']['author']['name'],
-                            "date": commit['commit']['author']['date']
-                        } for commit in commits],
-                        "changedFiles": [{
-                            "path": file['filename'],
-                            "additions": file['additions'],
-                            "deletions": file['deletions']
-                        } for file in files]
-                    })
-                
-                return formatted_pulls
-                
-    except Exception as e:
-        logger.error(f"Error fetching pull requests: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":

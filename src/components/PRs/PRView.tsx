@@ -1,147 +1,166 @@
+
 import React, { useState, useEffect } from 'react';
-import { PullRequest } from '@/types';
+import { pullRequests } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
-import { Plus, GitPullRequest } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/components/ui/use-toast';
+import { Plus, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import PRCard from './PRCard';
+import PRDetail from './PRDetail';
 
 interface PRViewProps {
-  selectedRepo?: string;
+  isTransitioning?: boolean;
 }
 
-const PRView: React.FC<PRViewProps> = ({ selectedRepo }) => {
-  const [pullRequests, setPullRequests] = useState<PullRequest[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const { toast } = useToast();
-
+const PRView: React.FC<PRViewProps> = () => {
+  const [selectedPR, setSelectedPR] = useState<string | null>(null);
+  const [fromTicket, setFromTicket] = useState<boolean>(false);
+  const [ticketId, setTicketId] = useState<string | null>(null);
+  const [fromDoc, setFromDoc] = useState<boolean>(false);
+  const [docId, setDocId] = useState<string | null>(null);
+  
   useEffect(() => {
-    const fetchPullRequests = async () => {
-      if (!selectedRepo) {
-        setPullRequests([]);
-        return;
-      }
-
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await fetch(`http://localhost:8000/repositories/${selectedRepo}/pulls`, {
-          credentials: 'include'
-        });
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.detail || 'Failed to fetch pull requests');
+    // Check if there's a PR ID in the URL hash
+    const hashPath = window.location.hash;
+    if (hashPath.startsWith('#/prs/')) {
+      const prId = hashPath.replace(/#\/prs\/([^?]+).*/, '$1');
+      if (prId && pullRequests.some(pr => pr.id === prId)) {
+        setSelectedPR(prId);
+        
+        // Check if we came from ticket view
+        setFromTicket(hashPath.includes('fromTicket=true'));
+        
+        // Extract ticket ID if present
+        const ticketIdMatch = hashPath.match(/ticketId=([^&]+)/);
+        if (ticketIdMatch && ticketIdMatch[1]) {
+          setTicketId(ticketIdMatch[1]);
         }
 
-        const data = await response.json();
-        setPullRequests(data);
-      } catch (error) {
-        console.error('Error fetching pull requests:', error);
-        setError(error instanceof Error ? error.message : 'Failed to fetch pull requests');
-        toast({
-          title: "Error",
-          description: error instanceof Error ? error.message : "Failed to fetch pull requests. Please try again.",
-          variant: "destructive"
-        });
-      } finally {
-        setLoading(false);
+        // Check if we came from doc view
+        setFromDoc(hashPath.includes('fromDoc='));
+        
+        // Extract doc ID if present
+        const docIdMatch = hashPath.match(/fromDoc=([^&]+)/);
+        if (docIdMatch && docIdMatch[1]) {
+          setDocId(docIdMatch[1]);
+        }
+      }
+    }
+    
+    // Add hash change listener to handle navigation
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#/prs/')) {
+        const prId = hash.replace(/#\/prs\/([^?]+).*/, '$1');
+        if (prId && pullRequests.some(pr => pr.id === prId)) {
+          setSelectedPR(prId);
+          setFromTicket(hash.includes('fromTicket=true'));
+          
+          // Extract ticket ID if present
+          const ticketIdMatch = hash.match(/ticketId=([^&]+)/);
+          if (ticketIdMatch && ticketIdMatch[1]) {
+            setTicketId(ticketIdMatch[1]);
+          } else {
+            setTicketId(null);
+          }
+
+          // Check if we came from doc view
+          setFromDoc(hash.includes('fromDoc='));
+          
+          // Extract doc ID if present
+          const docIdMatch = hash.match(/fromDoc=([^&]+)/);
+          if (docIdMatch && docIdMatch[1]) {
+            setDocId(docIdMatch[1]);
+          } else {
+            setDocId(null);
+          }
+        }
+      } else if (hash === '#/prs' || hash === '' || hash.startsWith('#/tickets') || hash.startsWith('#/docs')) {
+        // Reset to PR list view or handle ticket/documentation navigation
+        setSelectedPR(null);
+        setFromTicket(false);
+        setTicketId(null);
+        setFromDoc(false);
+        setDocId(null);
       }
     };
-
-    fetchPullRequests();
-  }, [selectedRepo, toast]);
-
+    
+    window.addEventListener('hashchange', handleHashChange);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+  
   const handlePRClick = (prId: string) => {
-    window.location.hash = `/prs/${prId}`;
+    window.location.hash = `#/prs/${prId}`;
+    setSelectedPR(prId);
+    setFromTicket(false);
+    setTicketId(null);
+    setFromDoc(false);
+    setDocId(null);
   };
-
-  if (!selectedRepo) {
+  
+  const handleBack = () => {
+    if (fromTicket && ticketId) {
+      window.location.hash = `/tickets/${ticketId}`;
+      setSelectedPR(null);
+    } else if (fromDoc && docId) {
+      window.location.hash = `/docs/${docId}`;
+      setSelectedPR(null);
+    } else {
+      window.location.hash = '/prs';
+      setSelectedPR(null);
+    }
+  };
+  
+  // Find the selected pull request
+  const selectedPullRequest = pullRequests.find(pr => pr.id === selectedPR);
+  
+  if (selectedPR && selectedPullRequest) {
     return (
-      <div className="h-full flex items-center justify-center">
-        <p className="text-muted-foreground">Select a repository to view pull requests</p>
+      <div>
+        <PRDetail 
+          pullRequest={selectedPullRequest} 
+          onClose={handleBack}
+          fromTicket={fromTicket}
+          ticketId={ticketId}
+          fromDoc={fromDoc}
+          docId={docId} 
+        />
       </div>
     );
   }
-
-  if (loading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-center">
-          <GitPullRequest className="mx-auto h-12 w-12 text-red-500 mb-4" />
-          <h3 className="text-lg font-medium mb-2">Error Loading Pull Requests</h3>
-          <p className="text-muted-foreground">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
+  
   return (
     <div className="h-full p-4 overflow-auto">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold">Pull Requests</h2>
-        <Button size="sm" className="gap-1">
-          <Plus size={14} />
-          <span>New Pull Request</span>
-        </Button>
+        <div className="flex gap-2">
+          <div className="relative">
+            <Search size={16} className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground" />
+            <Input 
+              placeholder="Search PRs..." 
+              className="pl-8 h-9" 
+            />
+          </div>
+          <Button size="sm" className="gap-1">
+            <Plus size={14} />
+            <span>New PR</span>
+          </Button>
+        </div>
       </div>
       
       <div className="space-y-4">
-        {pullRequests.length === 0 ? (
-          <div className="text-center py-8">
-            <GitPullRequest className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium mb-2">No pull requests found</h3>
-            <p className="text-muted-foreground">Create a new pull request to get started</p>
-          </div>
-        ) : (
-          pullRequests.map((pr) => (
-            <Card 
-              key={pr.id} 
-              className="hover:bg-accent/50 cursor-pointer transition-colors"
-              onClick={() => handlePRClick(pr.id)}
-            >
-              <CardHeader className="pb-2">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">{pr.title}</CardTitle>
-                  <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(pr.status)}`}>
-                    {pr.status}
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  <span>By {pr.author}</span>
-                  <span>Created {new Date(pr.createdAt).toLocaleDateString()}</span>
-                  <span>{pr.changedFiles.length} files changed</span>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
+        {pullRequests.map((pr) => (
+          <PRCard 
+            key={pr.id} 
+            pullRequest={pr} 
+            onClick={() => handlePRClick(pr.id)}
+          />
+        ))}
       </div>
     </div>
   );
-};
-
-const getStatusColor = (status: PullRequest['status']) => {
-  switch (status) {
-    case 'open':
-      return 'bg-green-500/10 text-green-500';
-    case 'closed':
-      return 'bg-red-500/10 text-red-500';
-    case 'merged':
-      return 'bg-purple-500/10 text-purple-500';
-    default:
-      return 'bg-gray-500/10 text-gray-500';
-  }
 };
 
 export default PRView;
