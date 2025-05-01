@@ -3,6 +3,7 @@ export interface Repository {
   name: string;
   owner: string;
   description: string;
+  updatedAt: string;
 }
 
 export interface Commit {
@@ -57,19 +58,22 @@ export const repositories: Repository[] = [
     id: '1',
     name: 'ai-code-commander',
     owner: 'user',
-    description: 'AI-powered project management tool'
+    description: 'AI-powered project management tool',
+    updatedAt: '2025-04-30T14:32:00Z'
   },
   {
     id: '2',
     name: 'react-component-library',
     owner: 'user',
-    description: 'Reusable React components'
+    description: 'Reusable React components',
+    updatedAt: '2025-04-28T10:15:00Z'
   },
   {
     id: '3',
     name: 'node-api-server',
     owner: 'user',
-    description: 'API server built with Node.js'
+    description: 'API server built with Node.js',
+    updatedAt: '2025-04-25T09:45:00Z'
   }
 ];
 
