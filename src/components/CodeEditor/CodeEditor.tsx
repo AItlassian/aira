@@ -5,16 +5,32 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import CommitPanel from './CommitPanel';
 import RepoSelector from './RepoSelector';
+import RepoStructure from './RepoStructure';
 
 const CodeEditor: React.FC = () => {
   const [codeLines] = useState<string[]>(sampleCode.split('\n'));
   const [activeLine, setActiveLine] = useState<number>(5);
+  const [showRepoStructure, setShowRepoStructure] = useState<boolean>(true);
   
   return (
     <div className="flex h-full">
+      {showRepoStructure && (
+        <>
+          <RepoStructure />
+          <Separator orientation="vertical" />
+        </>
+      )}
       <div className="flex flex-col w-full">
         <div className="flex items-center justify-between p-2 border-b border-border">
-          <RepoSelector />
+          <div className="flex items-center gap-2">
+            <button 
+              onClick={() => setShowRepoStructure(!showRepoStructure)}
+              className="text-muted-foreground hover:text-foreground text-xs px-2 py-1 rounded border border-border"
+            >
+              {showRepoStructure ? 'Hide Files' : 'Show Files'}
+            </button>
+            <RepoSelector />
+          </div>
           <div className="text-sm text-muted-foreground">src/components/Login.tsx</div>
         </div>
         

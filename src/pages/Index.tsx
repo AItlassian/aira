@@ -25,8 +25,7 @@ const Index = () => {
   };
   
   return (
-    <AppLayout>
-      {/* Tab navigation is within AppLayout */}
+    <AppLayout activeTab={activeTab} onTabChange={setActiveTab}>
       <div className="h-[calc(100vh-6.5rem)]">
         {renderContent()}
       </div>
