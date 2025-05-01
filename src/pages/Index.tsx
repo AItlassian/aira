@@ -14,7 +14,7 @@ const Index = () => {
     const handleHashChange = () => {
       const hash = window.location.hash;
       
-      // If we're going to a PR detail page from a ticket, switch to PR tab
+      // If we're going to a PR detail page from a ticket or doc, switch to PR tab
       if (hash.startsWith('#/prs/')) {
         setActiveTab('prs');
       }
@@ -25,6 +25,10 @@ const Index = () => {
       // For ticket navigation (both list and detail)
       else if (hash === '#/tickets' || hash.startsWith('#/tickets/')) {
         setActiveTab('tickets');
+      }
+      // For documentation navigation (both list and detail)
+      else if (hash === '#/docs' || hash.startsWith('#/docs/')) {
+        setActiveTab('docs');
       }
     };
     
@@ -48,7 +52,7 @@ const Index = () => {
       case 'tickets':
         return <TicketsView key={window.location.hash} />;
       case 'docs':
-        return <DocumentationView />;
+        return <DocumentationView key={window.location.hash} />;
       default:
         return <CodeEditor />;
     }

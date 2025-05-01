@@ -1,12 +1,71 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { documentations } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import { Plus, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import DocumentationDetail from './DocumentationDetail';
 
 const DocumentationView: React.FC = () => {
+  const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+  
+  // Check if there's a documentation ID in the URL hash
+  React.useEffect(() => {
+    const hashPath = window.location.hash;
+    if (hashPath.startsWith('#/docs/')) {
+      const docId = hashPath.replace('#/docs/', '');
+      if (documentations.some(d => d.id === docId)) {
+        setSelectedDocId(docId);
+      }
+    }
+    
+    // Add hash change listener to handle navigation
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#/docs/')) {
+        const docId = hash.replace('#/docs/', '');
+        if (documentations.some(d => d.id === docId)) {
+          setSelectedDocId(docId);
+        }
+      } else if (hash === '#/docs') {
+        setSelectedDocId(null);
+      }
+    };
+    
+    window.addEventListener('hashchange', handleHashChange);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
+  
+  const handleDocClick = (docId: string) => {
+    setSelectedDocId(docId);
+    window.location.hash = `/docs/${docId}`;
+  };
+  
+  const handleCloseDetail = () => {
+    setSelectedDocId(null);
+    window.location.hash = '/docs';
+  };
+  
+  const handleViewPR = (prId: string) => {
+    // Navigate to PR detail view with a reference back to this doc
+    window.location.hash = `/prs/${prId}?fromDoc=${selectedDocId}`;
+  };
+  
+  // If a documentation is selected, show its detail view
+  if (selectedDocId) {
+    return (
+      <DocumentationDetail 
+        docId={selectedDocId}
+        onClose={handleCloseDetail}
+        onViewPR={handleViewPR}
+      />
+    );
+  }
+  
+  // Otherwise, show the documentation list
   return (
     <div className="h-full p-4 overflow-auto">
       <div className="flex items-center justify-between mb-6">
@@ -21,7 +80,11 @@ const DocumentationView: React.FC = () => {
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {documentations.map((doc) => (
-          <Card key={doc.id} className="transition-all hover:shadow-md">
+          <Card 
+            key={doc.id} 
+            className="transition-all hover:shadow-md cursor-pointer"
+            onClick={() => handleDocClick(doc.id)}
+          >
             <CardHeader className="pb-2">
               <div className="flex items-center gap-2">
                 <FileText size={18} className="text-primary" />
