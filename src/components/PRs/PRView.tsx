@@ -54,10 +54,11 @@ const PRView: React.FC = () => {
   const handleBack = () => {
     // If we came from ticket view, go back to previous page with browser history
     if (fromTicket) {
+      // Go back to the previous page (ticket detail)
       window.history.back();
     } else {
       // Otherwise clear the hash to show PR list
-      window.history.pushState("", document.title, window.location.pathname + "#/prs");
+      window.history.pushState({}, "", `#/prs`);
       setSelectedPR(null);
     }
   };

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import AppLayout from '@/components/Layout/AppLayout';
 import CodeEditor from '@/components/CodeEditor/CodeEditor';
@@ -13,12 +12,13 @@ const Index = () => {
     // Handle hash-based navigation for PR links
     const handleHashChange = () => {
       const hash = window.location.hash;
-      // If we're going to a PR detail page from a ticket, switch to PRs tab
+      // If we're going to a PR detail page from a ticket, don't change the active tab
+      // This allows viewing PR details while keeping the active tab as "tickets"
       if (hash.startsWith('#/prs/') && hash.includes('fromTicket=true')) {
-        setActiveTab('prs');
+        // Don't change the active tab, let PRView component handle this navigation
       }
-      // Regular PR tab navigation
-      else if (hash.startsWith('#/prs') && !hash.includes('fromTicket=true')) {
+      // Regular PR tab navigation (not from ticket)
+      else if (hash.startsWith('#/prs')) {
         setActiveTab('prs');
       }
     };
