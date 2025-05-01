@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,7 +62,15 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
-				}
+				},
+        code: {
+          DEFAULT: '#1e1e1e',
+          foreground: '#d4d4d4',
+          border: '#252525',
+          selection: 'rgba(73, 72, 62, 0.5)',
+          activeLine: '#282828',
+          lineNumber: '#858585'
+        },
 			},
 			borderRadius: {
 				lg: 'var(--radius)',

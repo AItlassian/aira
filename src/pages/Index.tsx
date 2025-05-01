@@ -1,13 +1,36 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState } from 'react';
+import AppLayout from '@/components/Layout/AppLayout';
+import CodeEditor from '@/components/CodeEditor/CodeEditor';
+import TicketsView from '@/components/Tickets/TicketsView';
+import PRView from '@/components/PRs/PRView';
+import DocumentationView from '@/components/Documentation/DocumentationView';
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState('code');
+  
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'code':
+        return <CodeEditor />;
+      case 'prs':
+        return <PRView />;
+      case 'tickets':
+        return <TicketsView />;
+      case 'docs':
+        return <DocumentationView />;
+      default:
+        return <CodeEditor />;
+    }
+  };
+  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <AppLayout>
+      {/* Tab navigation is within AppLayout */}
+      <div className="h-[calc(100vh-6.5rem)]">
+        {renderContent()}
       </div>
-    </div>
+    </AppLayout>
   );
 };
 
