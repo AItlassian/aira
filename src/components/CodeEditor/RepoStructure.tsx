@@ -3,8 +3,13 @@ import React, { useState } from 'react';
 import { Folder, File, ChevronRight, ChevronDown } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
-// Sample repository structure
-const repoStructure = {
+interface FileSystemItem {
+  type: 'file' | 'folder';
+  children?: Record<string, FileSystemItem>;
+}
+
+// Sample repository structure with correct typing
+const repoStructure: Record<string, FileSystemItem> = {
   'src': {
     type: 'folder',
     children: {
@@ -47,11 +52,6 @@ const repoStructure = {
   'README.md': { type: 'file' },
   'tsconfig.json': { type: 'file' },
 };
-
-interface FileSystemItem {
-  type: 'file' | 'folder';
-  children?: Record<string, FileSystemItem>;
-}
 
 interface FileTreeProps {
   structure: Record<string, FileSystemItem>;
