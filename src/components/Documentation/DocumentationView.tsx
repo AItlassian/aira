@@ -1,10 +1,12 @@
+
 import React, { useState } from 'react';
 import { documentations } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
-import { Plus, FileText } from 'lucide-react';
+import { Plus, FileText, GitPullRequest } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import DocumentationDetail from './DocumentationDetail';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 const DocumentationView: React.FC = () => {
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
@@ -105,7 +107,30 @@ const DocumentationView: React.FC = () => {
                 <Badge variant="outline" className="bg-primary/10 text-primary">
                   {doc.relatedPRs.length} PR{doc.relatedPRs.length > 1 ? 's' : ''}
                 </Badge>
-                <Button variant="ghost" size="sm">View Full</Button>
+                <TooltipProvider>
+                  <div className="flex gap-1">
+                    {doc.relatedPRs.map(prId => (
+                      <Tooltip key={prId}>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            variant="outline" 
+                            size="icon"
+                            className="bg-primary/10 hover:bg-primary/20"
+                            onClick={(e) => {
+                              e.stopPropagation(); // Prevent card click
+                              handleViewPR(prId);
+                            }}
+                          >
+                            <GitPullRequest size={16} className="text-primary" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>View PR {prId.replace('pr', '')}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ))}
+                  </div>
+                </TooltipProvider>
               </div>
             </CardContent>
           </Card>
