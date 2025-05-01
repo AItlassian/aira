@@ -21,6 +21,27 @@ const PRView: React.FC = () => {
         setFromTicket(hashPath.includes('fromTicket=true'));
       }
     }
+    
+    // Add hash change listener to handle navigation
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#/prs/')) {
+        const prId = hash.replace(/#\/prs\/([^?]+).*/, '$1');
+        if (prId && pullRequests.some(pr => pr.id === prId)) {
+          setSelectedPR(prId);
+          setFromTicket(hash.includes('fromTicket=true'));
+        }
+      } else if (hash === '#/prs' || hash === '') {
+        // Reset to PR list view
+        setSelectedPR(null);
+        setFromTicket(false);
+      }
+    };
+    
+    window.addEventListener('hashchange', handleHashChange);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
   }, []);
   
   const handlePRClick = (prId: string) => {
@@ -36,7 +57,7 @@ const PRView: React.FC = () => {
       window.history.back();
     } else {
       // Otherwise clear the hash to show PR list
-      window.history.pushState("", document.title, window.location.pathname);
+      window.history.pushState("", document.title, window.location.pathname + "#/prs");
       setSelectedPR(null);
     }
   };

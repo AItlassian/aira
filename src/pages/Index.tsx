@@ -13,7 +13,12 @@ const Index = () => {
     // Handle hash-based navigation for PR links
     const handleHashChange = () => {
       const hash = window.location.hash;
-      if (hash.startsWith('#/prs') && !hash.includes('fromTicket=true')) {
+      // If we're going to a PR detail page from a ticket, switch to PRs tab
+      if (hash.startsWith('#/prs/') && hash.includes('fromTicket=true')) {
+        setActiveTab('prs');
+      }
+      // Regular PR tab navigation
+      else if (hash.startsWith('#/prs') && !hash.includes('fromTicket=true')) {
         setActiveTab('prs');
       }
     };
