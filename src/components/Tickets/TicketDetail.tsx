@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Ticket, commits } from '@/data/mockData';
 import { 
@@ -123,7 +124,8 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose, onViewComm
   const handleViewPR = (prId: string) => {
     // Update app's tab state to show the PRs tab and navigate to the specific PR
     // Set the URL hash and let PRView component handle the navigation
-    window.location.hash = `/prs/${prId}`;
+    // Add fromTicket=true parameter to mark that we came from ticket view
+    window.location.hash = `/prs/${prId}?fromTicket=true`;
   };
   
   const renderFileDiff = () => {
@@ -153,7 +155,7 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose, onViewComm
   if (viewingPR) {
     // In a real app with routing, we would navigate to PR view
     // For now, we'll redirect to PR tab in parent component
-    window.location.href = `/#/prs/${viewingPR}`;
+    window.location.href = `/#/prs/${viewingPR}?fromTicket=true`;
     return null;
   }
   

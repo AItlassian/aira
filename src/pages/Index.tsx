@@ -13,7 +13,7 @@ const Index = () => {
     // Handle hash-based navigation for PR links
     const handleHashChange = () => {
       const hash = window.location.hash;
-      if (hash.startsWith('#/prs/')) {
+      if (hash.startsWith('#/prs') && !hash.includes('fromTicket=true')) {
         setActiveTab('prs');
       }
     };

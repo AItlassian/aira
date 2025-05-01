@@ -56,6 +56,17 @@ const PRDetail: React.FC<PRDetailProps> = ({ pullRequest, onClose }) => {
   const [selectedCommit, setSelectedCommit] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   
+  // Check if we came from a ticket page
+  const fromTicket = window.location.hash.includes('fromTicket=true');
+  
+  // Handle back to PR list navigation
+  const handleBackToPRs = () => {
+    // Update the URL hash and let Index component handle tab switching
+    window.history.pushState({}, "", '#/prs');
+    window.dispatchEvent(new HashChangeEvent('hashchange'));
+    onClose();
+  };
+  
   // Mock file changes data
   const fileChanges = [
     { path: 'src/components/Auth/Login.tsx', additions: 42, deletions: 12 },
@@ -148,8 +159,29 @@ const PRDetail: React.FC<PRDetailProps> = ({ pullRequest, onClose }) => {
     <div className="h-full overflow-auto">
       <div className="sticky top-0 z-10 flex items-center justify-between bg-background p-4 border-b">
         <div className="flex items-center gap-2">
-          <GitPullRequest size={20} className="text-primary" />
-          <h2 className="text-xl font-bold">Pull Request #{pullRequest.id.replace('pr', '')}</h2>
+          {/* Show the back to PRs button only if not already in the PR tab */}
+          {fromTicket && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleBackToPRs} 
+              className="gap-1"
+            >
+              <ChevronLeft size={16} />
+              <span>All Pull Requests</span>
+            </Button>
+          )}
+          {!fromTicket && (
+            <div className="flex items-center gap-1">
+              <GitPullRequest size={20} className="text-primary" />
+              <h2 className="text-xl font-bold">Pull Request #{pullRequest.id.replace('pr', '')}</h2>
+            </div>
+          )}
+          {fromTicket && (
+            <div className="ml-4">
+              <h2 className="text-xl font-bold">Pull Request #{pullRequest.id.replace('pr', '')}</h2>
+            </div>
+          )}
         </div>
         <Button variant="ghost" size="sm" onClick={onClose}>
           <X size={16} />

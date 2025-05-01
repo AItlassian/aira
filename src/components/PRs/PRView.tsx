@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { pullRequests } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
@@ -9,14 +8,17 @@ import PRDetail from './PRDetail';
 
 const PRView: React.FC = () => {
   const [selectedPR, setSelectedPR] = useState<string | null>(null);
+  const [fromTicket, setFromTicket] = useState<boolean>(false);
   
   useEffect(() => {
     // Check if there's a PR ID in the URL hash
     const hashPath = window.location.hash;
     if (hashPath.startsWith('#/prs/')) {
-      const prId = hashPath.replace('#/prs/', '');
+      const prId = hashPath.replace(/#\/prs\/([^?]+).*/, '$1');
       if (prId && pullRequests.some(pr => pr.id === prId)) {
         setSelectedPR(prId);
+        // Check if we came from ticket view
+        setFromTicket(hashPath.includes('fromTicket=true'));
       }
     }
   }, []);
@@ -25,12 +27,18 @@ const PRView: React.FC = () => {
     // Update the URL hash when selecting a PR directly
     window.history.pushState({}, "", `#/prs/${prId}`);
     setSelectedPR(prId);
+    setFromTicket(false);
   };
   
   const handleBack = () => {
-    // Clear the hash when going back
-    window.history.pushState("", document.title, window.location.pathname);
-    setSelectedPR(null);
+    // If we came from ticket view, go back to previous page with browser history
+    if (fromTicket) {
+      window.history.back();
+    } else {
+      // Otherwise clear the hash to show PR list
+      window.history.pushState("", document.title, window.location.pathname);
+      setSelectedPR(null);
+    }
   };
   
   // Find the selected pull request
