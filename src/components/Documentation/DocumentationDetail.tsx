@@ -67,12 +67,11 @@ const DocumentationDetail: React.FC<DocumentationDetailProps> = ({
                 <Button 
                   key={prId} 
                   variant="outline" 
-                  size="sm" 
-                  className="gap-2"
+                  size="icon"
                   onClick={() => onViewPR && onViewPR(prId)}
+                  title={`View PR ${prId}`}
                 >
-                  <GitPullRequest size={14} />
-                  <span>View PR {prId}</span>
+                  <GitPullRequest size={16} />
                 </Button>
               ))}
             </div>
