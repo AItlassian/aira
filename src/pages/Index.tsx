@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppLayout from '@/components/Layout/AppLayout';
 import CodeEditor from '@/components/CodeEditor/CodeEditor';
 import TicketsView from '@/components/Tickets/TicketsView';
@@ -8,6 +8,26 @@ import DocumentationView from '@/components/Documentation/DocumentationView';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('code');
+  
+  useEffect(() => {
+    // Handle hash-based navigation for PR links
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#/prs/')) {
+        setActiveTab('prs');
+      }
+    };
+    
+    // Check on initial load
+    handleHashChange();
+    
+    // Set up listener for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+    };
+  }, []);
   
   const renderContent = () => {
     switch (activeTab) {

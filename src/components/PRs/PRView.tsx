@@ -13,8 +13,8 @@ const PRView: React.FC = () => {
   useEffect(() => {
     // Check if there's a PR ID in the URL hash
     const hashPath = window.location.hash;
-    if (hashPath.startsWith('/#/prs/')) {
-      const prId = hashPath.replace('/#/prs/', '');
+    if (hashPath.startsWith('#/prs/')) {
+      const prId = hashPath.replace('#/prs/', '');
       if (prId && pullRequests.some(pr => pr.id === prId)) {
         setSelectedPR(prId);
       }
@@ -22,14 +22,14 @@ const PRView: React.FC = () => {
   }, []);
   
   const handlePRClick = (prId: string) => {
+    // Update the URL hash when selecting a PR directly
+    window.history.pushState({}, "", `#/prs/${prId}`);
     setSelectedPR(prId);
   };
   
   const handleBack = () => {
     // Clear the hash when going back
-    if (window.location.hash.includes('/prs/')) {
-      window.history.pushState("", document.title, window.location.pathname);
-    }
+    window.history.pushState("", document.title, window.location.pathname);
     setSelectedPR(null);
   };
   
