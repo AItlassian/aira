@@ -62,10 +62,22 @@ const PRDetail: React.FC<PRDetailProps> = ({ pullRequest, onClose }) => {
   const handleBackToPRs = () => {
     if (fromTicket) {
       // Go back to the ticket detail page
-      window.history.back();
+      window.location.hash = '/tickets'; // Change URL hash to trigger navigation
+      onClose(); // Also call onClose to properly reset UI state
     } else {
       // For normal PR list navigation
       window.location.hash = '/prs';
+      onClose();
+    }
+  };
+  
+  // Handle close button click for proper navigation
+  const handleClose = () => {
+    if (fromTicket) {
+      window.location.hash = '/tickets'; // Change URL hash first
+      onClose(); // Then call onClose to reset UI state
+    } else {
+      onClose();
     }
   };
   
@@ -109,7 +121,7 @@ const PRDetail: React.FC<PRDetailProps> = ({ pullRequest, onClose }) => {
             </Button>
             <h2 className="text-xl font-bold">Commit: {selectedCommit}</h2>
           </div>
-          <Button variant="ghost" size="sm" onClick={fromTicket ? () => window.history.back() : onClose}>
+          <Button variant="ghost" size="sm" onClick={handleClose}>
             <X size={16} />
           </Button>
         </div>
@@ -138,7 +150,7 @@ const PRDetail: React.FC<PRDetailProps> = ({ pullRequest, onClose }) => {
             </Button>
             <h2 className="text-xl font-bold">File: {selectedFile}</h2>
           </div>
-          <Button variant="ghost" size="sm" onClick={fromTicket ? () => window.history.back() : onClose}>
+          <Button variant="ghost" size="sm" onClick={handleClose}>
             <X size={16} />
           </Button>
         </div>
@@ -175,7 +187,7 @@ const PRDetail: React.FC<PRDetailProps> = ({ pullRequest, onClose }) => {
             <h2 className="text-xl font-bold">Pull Request #{pullRequest.id.replace('pr', '')}</h2>
           </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={fromTicket ? () => window.history.back() : onClose}>
+        <Button variant="ghost" size="sm" onClick={handleClose}>
           <X size={16} />
         </Button>
       </div>

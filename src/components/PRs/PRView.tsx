@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { pullRequests } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
@@ -32,8 +31,8 @@ const PRView: React.FC = () => {
           setSelectedPR(prId);
           setFromTicket(hash.includes('fromTicket=true'));
         }
-      } else if (hash === '#/prs' || hash === '') {
-        // Reset to PR list view
+      } else if (hash === '#/prs' || hash === '' || hash === '#/tickets') {
+        // Reset to PR list view or handle ticket navigation
         setSelectedPR(null);
         setFromTicket(false);
       }
@@ -53,12 +52,10 @@ const PRView: React.FC = () => {
   };
   
   const handleBack = () => {
-    // If we came from ticket view, go back to previous page with browser history
     if (fromTicket) {
-      // Go back to the ticket detail page
-      window.history.back();
+      window.location.hash = '/tickets';
+      setSelectedPR(null);
     } else {
-      // Otherwise go to PR list
       window.location.hash = '/prs';
       setSelectedPR(null);
     }

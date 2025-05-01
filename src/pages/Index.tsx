@@ -22,6 +22,10 @@ const Index = () => {
       else if (hash === '#/prs') {
         setActiveTab('prs');
       }
+      // For ticket navigation
+      else if (hash === '#/tickets' || hash.startsWith('#/tickets/')) {
+        setActiveTab('tickets');
+      }
     };
     
     // Check on initial load
