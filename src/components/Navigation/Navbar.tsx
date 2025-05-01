@@ -3,21 +3,13 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Github } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
 
 const Navbar: React.FC = () => {
   const navigate = useNavigate();
 
   const handleGitHubConnect = () => {
-    // In a real app, this would redirect to GitHub OAuth flow
-    toast.info("Connecting to GitHub...");
-    
-    // Simulate authentication process
-    setTimeout(() => {
-      // Show repository selection dialog after "authentication"
-      navigate('/?showRepoSelector=true');
-      toast.success("GitHub connected successfully! Select a repository to continue.");
-    }, 1000);
+    // Redirect to the GitHub authentication simulator
+    navigate('/github-auth');
   };
 
   return (
