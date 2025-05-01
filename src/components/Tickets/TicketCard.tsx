@@ -9,10 +9,11 @@ import { Progress } from '@/components/ui/progress';
 
 interface TicketCardProps {
   ticket: Ticket;
+  onClick: () => void;
 }
 
-const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
-  const completedTasks = ticket.subtasks.filter(task => task.completed).length;
+const TicketCard: React.FC<TicketCardProps> = ({ ticket, onClick }) => {
+  const completedTasks = ticket.subtasks.filter(task => task.status === 'done').length;
   const progress = (completedTasks / ticket.subtasks.length) * 100;
   
   const getStatusColor = () => {
@@ -35,7 +36,7 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
   };
   
   return (
-    <Card className="transition-all hover:shadow-md">
+    <Card className="transition-all hover:shadow-md cursor-pointer hover:bg-accent/10" onClick={onClick}>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
           <CardTitle className="text-base">{ticket.title}</CardTitle>
@@ -62,10 +63,14 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
         <div className="space-y-1.5">
           {ticket.subtasks.slice(0, 3).map(task => (
             <div key={task.id} className="flex items-center space-x-2">
-              <Checkbox id={task.id} checked={task.completed} />
+              <Checkbox 
+                id={task.id} 
+                checked={task.status === 'done'} 
+                onClick={(e) => e.stopPropagation()}
+              />
               <Label 
                 htmlFor={task.id} 
-                className={`text-xs cursor-pointer ${task.completed ? 'line-through text-muted-foreground' : ''}`}
+                className={`text-xs cursor-pointer ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}
               >
                 {task.title}
               </Label>

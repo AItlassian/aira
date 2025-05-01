@@ -1,4 +1,3 @@
-
 export interface Repository {
   id: string;
   name: string;
@@ -39,7 +38,8 @@ export interface Ticket {
   subtasks: {
     id: string;
     title: string;
-    completed: boolean;
+    status: 'todo' | 'in-progress' | 'review' | 'done';
+    commitId?: string;
   }[];
 }
 
@@ -127,10 +127,10 @@ export const tickets: Ticket[] = [
     updatedAt: '2025-04-30T15:00:00Z',
     relatedPRs: ['pr1'],
     subtasks: [
-      { id: 'st1', title: 'Set up OAuth providers', completed: true },
-      { id: 'st2', title: 'Create login UI', completed: true },
-      { id: 'st3', title: 'Implement token management', completed: false },
-      { id: 'st4', title: 'Add protected routes', completed: false }
+      { id: 'st1', title: 'Set up OAuth providers', status: 'done', commitId: 'c1' },
+      { id: 'st2', title: 'Create login UI', status: 'done', commitId: 'c1' },
+      { id: 'st3', title: 'Implement token management', status: 'in-progress', commitId: 'c2' },
+      { id: 'st4', title: 'Add protected routes', status: 'todo' }
     ]
   },
   {
@@ -144,8 +144,8 @@ export const tickets: Ticket[] = [
     updatedAt: '2025-04-29T10:00:00Z',
     relatedPRs: ['pr2'],
     subtasks: [
-      { id: 'st5', title: 'Identify source of route state inconsistency', completed: true },
-      { id: 'st6', title: 'Fix state management in navigation component', completed: true }
+      { id: 'st5', title: 'Identify source of route state inconsistency', status: 'done', commitId: 'c2' },
+      { id: 'st6', title: 'Fix state management in navigation component', status: 'done', commitId: 'c2' }
     ]
   }
 ];
