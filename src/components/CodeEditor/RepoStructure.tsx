@@ -56,9 +56,10 @@ const repoStructure: Record<string, FileSystemItem> = {
 interface FileTreeProps {
   structure: Record<string, FileSystemItem>;
   level?: number;
+  onFileSelect?: (filePath: string) => void;
 }
 
-const FileTree: React.FC<FileTreeProps> = ({ structure, level = 0 }) => {
+const FileTree: React.FC<FileTreeProps> = ({ structure, level = 0, onFileSelect }) => {
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({
     'src': true,
     'src/components': true,
@@ -97,6 +98,7 @@ const FileTree: React.FC<FileTreeProps> = ({ structure, level = 0 }) => {
                 <FileTree 
                   structure={item.children} 
                   level={level + 1} 
+                  onFileSelect={onFileSelect}
                 />
               </div>
             )}
@@ -108,6 +110,7 @@ const FileTree: React.FC<FileTreeProps> = ({ structure, level = 0 }) => {
             key={path}
             className="flex items-center py-1 px-2 hover:bg-muted cursor-pointer"
             style={{ paddingLeft: `${(level + 1) * 16}px` }}
+            onClick={() => onFileSelect && onFileSelect(path)}
           >
             <File size={16} className="mr-1 text-muted-foreground" />
             <span className="text-sm">{name}</span>
@@ -121,6 +124,11 @@ const FileTree: React.FC<FileTreeProps> = ({ structure, level = 0 }) => {
 };
 
 const RepoStructure: React.FC = () => {
+  const handleFileSelect = (filePath: string) => {
+    console.log(`Selected file: ${filePath}`);
+    // Here you can add functionality to load and display the file content
+  };
+
   return (
     <div className="w-64 border-r border-border bg-card">
       <div className="p-2 border-b border-border">
@@ -128,7 +136,7 @@ const RepoStructure: React.FC = () => {
       </div>
       <ScrollArea className="h-[calc(100vh-10rem)]">
         <div className="p-2">
-          <FileTree structure={repoStructure} />
+          <FileTree structure={repoStructure} onFileSelect={handleFileSelect} />
         </div>
       </ScrollArea>
     </div>

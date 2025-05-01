@@ -11,12 +11,19 @@ const CodeEditor: React.FC = () => {
   const [codeLines] = useState<string[]>(sampleCode.split('\n'));
   const [activeLine, setActiveLine] = useState<number>(5);
   const [showRepoStructure, setShowRepoStructure] = useState<boolean>(true);
+  const [activeFile, setActiveFile] = useState<string>('src/components/Login.tsx');
+  
+  const handleFileSelect = (filePath: string) => {
+    setActiveFile(filePath);
+    console.log(`Loading file: ${filePath}`);
+    // In a real app, this would load the file content
+  };
   
   return (
     <div className="flex h-full">
       {showRepoStructure && (
         <>
-          <RepoStructure />
+          <RepoStructure onFileSelect={handleFileSelect} />
           <Separator orientation="vertical" />
         </>
       )}
@@ -31,7 +38,7 @@ const CodeEditor: React.FC = () => {
             </button>
             <RepoSelector />
           </div>
-          <div className="text-sm text-muted-foreground">src/components/Login.tsx</div>
+          <div className="text-sm text-muted-foreground">{activeFile}</div>
         </div>
         
         <div className="flex flex-1 overflow-hidden">
