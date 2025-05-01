@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import AppLayout from '@/components/Layout/AppLayout';
 import CodeEditor from '@/components/CodeEditor/CodeEditor';
@@ -18,7 +19,7 @@ const Index = () => {
         // Don't change the active tab, let PRView component handle this navigation
       }
       // Regular PR tab navigation (not from ticket)
-      else if (hash.startsWith('#/prs')) {
+      else if (hash.startsWith('#/prs') && !hash.includes('fromTicket=true')) {
         setActiveTab('prs');
       }
     };
