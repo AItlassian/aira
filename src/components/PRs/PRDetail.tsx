@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { PullRequest } from '@/data/mockData';
+import React, { useState, useEffect } from 'react';
+import { PullRequest } from '@/types';
 import { 
   Card, 
   CardContent, 
@@ -12,7 +12,8 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { GitPullRequest, GitCommitHorizontal, FileCode, FileText, X, ChevronLeft } from 'lucide-react';
+import { GitPullRequest, GitCommitHorizontal, FileCode, FileText, X, ChevronLeft, Plus, Minus } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 interface PRDetailProps {
   pullRequest: PullRequest;
@@ -23,100 +24,129 @@ interface PRDetailProps {
   docId?: string | null;
 }
 
-// Mock code diff data
-const mockDiff = `
-@@ -12,7 +12,7 @@ const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-- const [isLoading, setIsLoading] = useState(true);
-+ const [isLoading, setIsLoading] = useState(false);
-  
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-@@ -24,6 +24,9 @@ const Login = () => {
-      // Handle successful login
-      console.log('Logged in successfully');
-      navigate('/dashboard');
-+   } catch (error) {
-+     console.error('Login failed:', error);
-+     setError('Invalid credentials. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-`;
-
 const PRDetail: React.FC<PRDetailProps> = ({ 
   pullRequest, 
-  onClose, 
-  fromTicket = false, 
-  ticketId = null,
-  fromDoc = false,
-  docId = null 
+  onClose,
+  fromTicket,
+  ticketId,
+  fromDoc,
+  docId
 }) => {
-  const getStatusColor = () => {
-    switch(pullRequest.status) {
-      case 'open': return 'bg-green-500/20 text-green-500';
-      case 'closed': return 'bg-red-500/20 text-red-500';
-      case 'merged': return 'bg-purple-500/20 text-purple-500';
-      default: return 'bg-muted text-muted-foreground';
-    }
-  };
-  
-  // State to track which commit is selected for viewing
-  const [selectedCommit, setSelectedCommit] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  
-  // Handle back navigation
-  const handleBackToPRs = () => {
-    if (fromTicket && ticketId) {
-      // Go back to the specific ticket detail page
-      window.location.hash = `/tickets/${ticketId}`;
-      onClose(); // Also call onClose to properly reset UI state
-    } else if (fromDoc && docId) {
-      // Go back to the specific documentation detail page
-      window.location.hash = `/docs/${docId}`;
-      onClose();
-    } else {
-      // For normal PR list navigation
-      window.location.hash = '/prs';
-      onClose();
+  const [fileDiff, setFileDiff] = useState<string>('');
+  const [prDescription, setPrDescription] = useState<string>('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchPrDescription = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await fetch('http://localhost:8000/generate-pr-description', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            commits: pullRequest.commits,
+            title: pullRequest.title
+          })
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.detail || 'Failed to generate PR description');
+        }
+        
+        const data = await response.json();
+        setPrDescription(data.description);
+      } catch (error) {
+        console.error('Error generating PR description:', error);
+        setError(error instanceof Error ? error.message : 'Failed to generate PR description');
+        setPrDescription(pullRequest.description); // Fallback to original description
+        toast({
+          title: "Error",
+          description: error instanceof Error ? error.message : "Failed to generate PR description. Using original description.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPrDescription();
+  }, [pullRequest, toast]);
+
+  const handleFileSelect = async (filePath: string) => {
+    setSelectedFile(filePath);
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`http://localhost:8000/repositories/${pullRequest.repo}/contents/${filePath}?ref=${pullRequest.branch}`, {
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || 'Failed to fetch file diff');
+      }
+      
+      const data = await response.json();
+      setFileDiff(data.diff || '');
+    } catch (error) {
+      console.error('Error fetching file diff:', error);
+      setError(error instanceof Error ? error.message : 'Failed to fetch file diff');
+      setFileDiff('');
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to fetch file changes. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
     }
   };
-  
-  // Handle close button click for proper navigation
-  const handleClose = () => {
-    if (fromTicket && ticketId) {
-      window.location.hash = `/tickets/${ticketId}`; // Change URL hash to specific ticket
-      onClose(); // Then call onClose to reset UI state
-    } else if (fromDoc && docId) {
-      window.location.hash = `/docs/${docId}`; // Change URL hash to specific doc
-      onClose();
-    } else {
-      onClose();
-    }
-  };
-  
-  // Mock file changes data
-  const fileChanges = [
-    { path: 'src/components/Auth/Login.tsx', additions: 42, deletions: 12 },
-    { path: 'src/services/auth.ts', additions: 78, deletions: 15 },
-    { path: 'src/hooks/useAuth.ts', additions: 31, deletions: 5 },
-    { path: 'src/components/Navigation.tsx', additions: 8, deletions: 3 }
-  ];
 
   const renderFileDiff = () => {
+    if (loading) {
+      return (
+        <div className="animate-pulse bg-muted rounded-md h-32"></div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="text-center py-4 text-red-500">
+          <p>{error}</p>
+        </div>
+      );
+    }
+
+    if (!fileDiff) return null;
+
     return (
-      <div className="bg-muted p-4 rounded-md overflow-auto text-sm font-mono whitespace-pre">
+      <div className="bg-muted rounded-md overflow-auto text-sm font-mono">
         <div className="flex flex-col">
-          {mockDiff.split('\n').map((line, index) => {
+          {fileDiff.split('\n').map((line, index) => {
             let lineClass = '';
-            if (line.startsWith('+')) lineClass = 'bg-green-500/10';
-            else if (line.startsWith('-')) lineClass = 'bg-red-500/10';
-            else if (line.startsWith('@')) lineClass = 'bg-blue-500/10';
+            let icon = null;
+            
+            if (line.startsWith('+')) {
+              lineClass = 'bg-green-500/10';
+              icon = <Plus size={14} className="text-green-500" />;
+            } else if (line.startsWith('-')) {
+              lineClass = 'bg-red-500/10';
+              icon = <Minus size={14} className="text-red-500" />;
+            } else if (line.startsWith('@')) {
+              lineClass = 'bg-blue-500/10';
+            }
             
             return (
-              <div key={index} className={`px-2 ${lineClass}`}>
-                {line}
+              <div key={index} className={`flex items-start px-2 ${lineClass}`}>
+                {icon && <span className="mr-2">{icon}</span>}
+                <span className="whitespace-pre">{line}</span>
               </div>
             );
           })}
@@ -124,71 +154,33 @@ const PRDetail: React.FC<PRDetailProps> = ({
       </div>
     );
   };
-  
-  // If viewing a specific commit or file
-  if (selectedCommit) {
-    return (
-      <div className="h-full overflow-auto">
-        <div className="sticky top-0 z-10 flex items-center justify-between bg-background p-4 border-b">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setSelectedCommit(null)}>
-              <ChevronLeft size={16} />
-            </Button>
-            <h2 className="text-xl font-bold">Commit: {selectedCommit}</h2>
-          </div>
-          <Button variant="ghost" size="sm" onClick={handleClose}>
-            <X size={16} />
-          </Button>
-        </div>
-        
-        <div className="p-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Changes in commit {selectedCommit}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {renderFileDiff()}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-  
-  if (selectedFile) {
-    return (
-      <div className="h-full overflow-auto">
-        <div className="sticky top-0 z-10 flex items-center justify-between bg-background p-4 border-b">
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => setSelectedFile(null)}>
-              <ChevronLeft size={16} />
-            </Button>
-            <h2 className="text-xl font-bold">File: {selectedFile}</h2>
-          </div>
-          <Button variant="ghost" size="sm" onClick={handleClose}>
-            <X size={16} />
-          </Button>
-        </div>
-        
-        <div className="p-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Changes in {selectedFile}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {renderFileDiff()}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-  
+
+  const handleBackToPRs = () => {
+    if (fromTicket && ticketId) {
+      window.location.hash = `/tickets/${ticketId}`;
+      onClose();
+    } else if (fromDoc && docId) {
+      window.location.hash = `/docs/${docId}`;
+      onClose();
+    } else {
+      window.location.hash = '/prs';
+      onClose();
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch(status) {
+      case 'open': return 'bg-green-500/20 text-green-500';
+      case 'closed': return 'bg-red-500/20 text-red-500';
+      case 'merged': return 'bg-purple-500/20 text-purple-500';
+      default: return 'bg-muted text-muted-foreground';
+    }
+  };
+
   return (
-    <div className="h-full overflow-auto">
+    <div className="h-full flex flex-col">
       <div className="sticky top-0 z-10 flex items-center justify-between bg-background p-4 border-b">
         <div className="flex items-center gap-2">
-          {/* Show the back button for all PR views */}
           <Button 
             variant="ghost" 
             size="sm" 
@@ -204,88 +196,93 @@ const PRDetail: React.FC<PRDetailProps> = ({
             <h2 className="text-xl font-bold">Pull Request #{pullRequest.id.replace('pr', '')}</h2>
           </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={handleClose}>
+        <Button variant="ghost" size="sm" onClick={onClose}>
           <X size={16} />
         </Button>
       </div>
-      
-      <div className="p-4">
-        <Card>
+
+      <div className="flex-1 overflow-auto p-4">
+        <Card className="mb-6">
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg">{pullRequest.title}</CardTitle>
-              <Badge className={getStatusColor()}>
+              <Badge className={getStatusColor(pullRequest.status)}>
                 {pullRequest.status}
               </Badge>
             </div>
             <CardDescription>
-              Created by {pullRequest.author} on {new Date(pullRequest.createdAt).toLocaleDateString()}
+              Created by {pullRequest.author} • {new Date(pullRequest.createdAt).toLocaleDateString()}
             </CardDescription>
           </CardHeader>
+          
           <CardContent>
-            <p className="mb-6">{pullRequest.description}</p>
-            
-            {pullRequest.aiSummary && (
-              <div className="mb-6 p-4 bg-primary/5 rounded-md border border-primary/20">
-                <Badge variant="outline" className="mb-2 bg-primary/10">AI Summary</Badge>
-                <p className="text-sm">{pullRequest.aiSummary}</p>
+            <div className="mb-6">
+              <div className="text-sm font-medium mb-2">Description</div>
+              {loading ? (
+                <div className="animate-pulse bg-muted h-20 rounded-md"></div>
+              ) : error ? (
+                <div className="text-red-500">{error}</div>
+              ) : (
+                <p className="text-muted-foreground whitespace-pre-wrap">{prDescription}</p>
+              )}
+            </div>
+
+            <div className="mb-6">
+              <div className="text-sm font-medium mb-2">Commits</div>
+              <div className="space-y-2">
+                {pullRequest.commits.map((commit) => (
+                  <div key={commit.id} className="flex items-center gap-2 text-sm">
+                    <GitCommitHorizontal size={14} className="text-primary" />
+                    <span className="font-mono">{commit.id.slice(0, 7)}</span>
+                    <span className="text-muted-foreground">{commit.message}</span>
+                  </div>
+                ))}
               </div>
-            )}
-            
-            <Accordion type="multiple" className="border rounded-md">
-              <AccordionItem value="commits">
-                <AccordionTrigger className="px-4">
-                  <span className="flex items-center gap-2">
-                    <GitCommitHorizontal size={16} />
-                    <span>Commits ({pullRequest.commits.length})</span>
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <div className="space-y-2">
-                    {pullRequest.commits.map((commitId) => (
-                      <Card key={commitId} className="p-2 hover:bg-accent/20 cursor-pointer" onClick={() => setSelectedCommit(commitId)}>
-                        <div className="flex items-center gap-2">
-                          <GitCommitHorizontal size={14} className="text-primary" />
-                          <span className="text-sm font-medium">{commitId}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">File Changes</CardTitle>
+            <CardDescription>
+              {pullRequest.changedFiles.length} files changed
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            <div className="space-y-4">
+              {pullRequest.changedFiles.map((file) => (
+                <Accordion key={file.path} type="single" collapsible>
+                  <AccordionItem value={file.path}>
+                    <AccordionTrigger className="hover:no-underline">
+                      <div className="flex items-center gap-2">
+                        <FileCode size={14} className="text-primary" />
+                        <span className="font-mono text-sm">{file.path}</span>
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <span className="text-green-500">+{file.additions}</span>
+                          <span className="text-red-500">-{file.deletions}</span>
                         </div>
-                      </Card>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-              
-              <AccordionItem value="files">
-                <AccordionTrigger className="px-4">
-                  <span className="flex items-center gap-2">
-                    <FileCode size={16} />
-                    <span>Changed Files ({fileChanges.length})</span>
-                  </span>
-                </AccordionTrigger>
-                <AccordionContent className="px-4 pb-4">
-                  <div className="space-y-2">
-                    {fileChanges.map((file, index) => (
-                      <Card 
-                        key={index} 
-                        className="p-2 hover:bg-accent/20 cursor-pointer" 
-                        onClick={() => setSelectedFile(file.path)}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <FileText size={14} className="text-primary" />
-                            <span className="text-sm">{file.path}</span>
-                          </div>
-                          <div className="text-xs">
-                            <span className="text-green-500">+{file.additions}</span>
-                            <span className="mx-1">/</span>
-                            <span className="text-red-500">-{file.deletions}</span>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
+                      </div>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      {selectedFile === file.path ? (
+                        renderFileDiff()
+                      ) : (
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleFileSelect(file.path)}
+                          className="w-full"
+                        >
+                          View Changes
+                        </Button>
+                      )}
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              ))}
+            </div>
           </CardContent>
         </Card>
       </div>

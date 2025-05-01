@@ -1,87 +1,64 @@
-
-import React, { useEffect, useState } from 'react';
-import { documentations } from '@/data/mockData';
+import React from 'react';
+import { Documentation } from '@/types';
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle, 
+  CardDescription 
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, GitPullRequest } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { X, ChevronLeft } from 'lucide-react';
 
 interface DocumentationDetailProps {
-  docId: string;
+  documentation: Documentation;
   onClose: () => void;
-  onViewTicket?: (ticketId: string) => void;
-  onViewPR?: (prId: string) => void;
 }
 
 const DocumentationDetail: React.FC<DocumentationDetailProps> = ({ 
-  docId, 
-  onClose,
-  onViewTicket,
-  onViewPR
+  documentation, 
+  onClose 
 }) => {
-  const [doc, setDoc] = useState(documentations.find(d => d.id === docId));
-
-  useEffect(() => {
-    // Update document if ID changes
-    setDoc(documentations.find(d => d.id === docId));
-  }, [docId]);
-
-  if (!doc) {
-    return (
-      <div className="h-full p-4 flex flex-col items-center justify-center">
-        <div className="text-lg text-muted-foreground">Documentation not found</div>
-        <Button onClick={onClose} variant="outline" className="mt-4">
-          Go Back
-        </Button>
-      </div>
-    );
-  }
+  const handleBackToDocs = () => {
+    window.location.hash = '/docs';
+    onClose();
+  };
 
   return (
-    <div className="h-full p-4 overflow-auto">
-      <div className="flex items-center gap-2 mb-6">
-        <Button onClick={onClose} variant="ghost" size="sm">
-          <ArrowLeft size={16} />
-          <span className="ml-1">Back</span>
-        </Button>
-        <h2 className="text-xl font-bold">{doc.title}</h2>
-      </div>
-
-      <div className="grid grid-cols-1 gap-6">
-        <div className="bg-card border rounded-md p-6">
-          <pre className="whitespace-pre-wrap font-mono text-sm bg-secondary p-4 rounded-md overflow-auto">
-            {doc.content}
-          </pre>
-          
-          <div className="mt-6 flex flex-col gap-4">
-            <div className="flex justify-between items-center">
-              <div className="text-sm text-muted-foreground">
-                Last updated: {new Date(doc.updatedAt).toLocaleDateString()}
-              </div>
-            </div>
-            
-            <div className="flex flex-wrap gap-2">
-              <TooltipProvider>
-                {doc.relatedPRs.map(prId => (
-                  <Tooltip key={prId}>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="icon"
-                        onClick={() => onViewPR && onViewPR(prId)}
-                        className="bg-primary/10 hover:bg-primary/20"
-                      >
-                        <GitPullRequest size={16} className="text-primary" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>View PR {prId.replace('pr', '')}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                ))}
-              </TooltipProvider>
-            </div>
+    <div className="h-full flex flex-col">
+      <div className="sticky top-0 z-10 flex items-center justify-between bg-background p-4 border-b">
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleBackToDocs} 
+            className="gap-1"
+          >
+            <ChevronLeft size={16} />
+            <span>All Documentation</span>
+          </Button>
+          <div className="ml-4">
+            <h2 className="text-xl font-bold">{documentation.title}</h2>
           </div>
         </div>
+        <Button variant="ghost" size="sm" onClick={onClose}>
+          <X size={16} />
+        </Button>
+      </div>
+
+      <div className="flex-1 overflow-auto p-4">
+        <Card>
+          <CardHeader>
+            <CardDescription>
+              Last updated {new Date(documentation.updatedAt).toLocaleDateString()}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="prose prose-sm max-w-none">
+              {documentation.content}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

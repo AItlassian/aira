@@ -1,15 +1,11 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Github } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
 
 const Navbar: React.FC = () => {
-  const navigate = useNavigate();
-
   const handleGitHubConnect = () => {
-    // Redirect to the GitHub authentication simulator
-    navigate('/github-auth');
+    // Redirect to the backend GitHub OAuth endpoint
+    window.location.href = 'http://localhost:8000/login';
   };
 
   return (

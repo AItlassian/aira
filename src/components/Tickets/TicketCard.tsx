@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Ticket } from '@/data/mockData';
+import { Ticket } from '@/types';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -16,86 +15,60 @@ const TicketCard: React.FC<TicketCardProps> = ({ ticket, onClick }) => {
   const completedTasks = ticket.subtasks.filter(task => task.status === 'done').length;
   const progress = (completedTasks / ticket.subtasks.length) * 100;
   
-  const getStatusColor = () => {
-    switch(ticket.status) {
-      case 'todo': return 'bg-muted text-muted-foreground';
-      case 'in-progress': return 'bg-blue-500/20 text-blue-500';
-      case 'review': return 'bg-amber-500/20 text-amber-500';
-      case 'done': return 'bg-green-500/20 text-green-500';
-      default: return 'bg-muted text-muted-foreground';
+  const getStatusColor = (status: Ticket['status']) => {
+    switch (status) {
+      case 'todo':
+        return 'bg-yellow-500/10 text-yellow-500';
+      case 'in-progress':
+        return 'bg-blue-500/10 text-blue-500';
+      case 'review':
+        return 'bg-purple-500/10 text-purple-500';
+      case 'done':
+        return 'bg-green-500/10 text-green-500';
+      default:
+        return 'bg-gray-500/10 text-gray-500';
     }
   };
-  
-  const getPriorityColor = () => {
-    switch(ticket.priority) {
-      case 'low': return 'bg-secondary text-secondary-foreground';
-      case 'medium': return 'bg-amber-500/20 text-amber-500';
-      case 'high': return 'bg-red-500/20 text-red-500';
-      default: return 'bg-secondary text-secondary-foreground';
+
+  const getPriorityColor = (priority: Ticket['priority']) => {
+    switch (priority) {
+      case 'high':
+        return 'bg-red-500/10 text-red-500';
+      case 'medium':
+        return 'bg-yellow-500/10 text-yellow-500';
+      case 'low':
+        return 'bg-green-500/10 text-green-500';
+      default:
+        return 'bg-gray-500/10 text-gray-500';
     }
   };
   
   return (
-    <Card className="transition-all hover:shadow-md cursor-pointer hover:bg-accent/10" onClick={onClick}>
+    <Card 
+      className="hover:bg-accent/50 cursor-pointer transition-colors"
+      onClick={onClick}
+    >
       <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
+        <div className="flex items-center justify-between">
           <CardTitle className="text-base">{ticket.title}</CardTitle>
-          <Badge className={getStatusColor()}>
-            {ticket.status.replace('-', ' ')}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <span className={`px-2 py-1 rounded-full text-xs ${getStatusColor(ticket.status)}`}>
+              {ticket.status}
+            </span>
+            <span className={`px-2 py-1 rounded-full text-xs ${getPriorityColor(ticket.priority)}`}>
+              {ticket.priority}
+            </span>
+          </div>
         </div>
-        <CardDescription className="text-xs">
-          {new Date(ticket.createdAt).toLocaleDateString()} • {ticket.assignee}
-        </CardDescription>
       </CardHeader>
-      
-      <CardContent className="pb-2">
-        <div className="text-sm mb-3 line-clamp-2 text-muted-foreground">
-          {ticket.description}
-        </div>
-        
-        <div className="mb-1 flex justify-between items-center">
-          <div className="text-xs font-medium">Progress</div>
-          <div className="text-xs text-muted-foreground">{completedTasks}/{ticket.subtasks.length}</div>
-        </div>
-        <Progress value={progress} className="h-1.5 mb-3" />
-        
-        <div className="space-y-1.5">
-          {ticket.subtasks.slice(0, 3).map(task => (
-            <div key={task.id} className="flex items-center space-x-2">
-              <Checkbox 
-                id={task.id} 
-                checked={task.status === 'done'} 
-                onClick={(e) => e.stopPropagation()}
-              />
-              <Label 
-                htmlFor={task.id} 
-                className={`text-xs cursor-pointer ${task.status === 'done' ? 'line-through text-muted-foreground' : ''}`}
-              >
-                {task.title}
-              </Label>
-            </div>
-          ))}
-          {ticket.subtasks.length > 3 && (
-            <div className="text-xs text-muted-foreground pl-6">
-              +{ticket.subtasks.length - 3} more subtasks
-            </div>
+      <CardContent>
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <span>Created {new Date(ticket.createdAt).toLocaleDateString()}</span>
+          {ticket.assignee && (
+            <span>Assigned to {ticket.assignee}</span>
           )}
         </div>
       </CardContent>
-      
-      <CardFooter className="pt-2">
-        <div className="flex justify-between w-full">
-          <Badge variant="outline" className={getPriorityColor()}>
-            {ticket.priority}
-          </Badge>
-          {ticket.relatedPRs.length > 0 && (
-            <Badge variant="outline" className="bg-primary/10 text-primary">
-              {ticket.relatedPRs.length} PR{ticket.relatedPRs.length > 1 ? 's' : ''}
-            </Badge>
-          )}
-        </div>
-      </CardFooter>
     </Card>
   );
 };
