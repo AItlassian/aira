@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { pullRequests } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import { Plus, Search, ArrowLeft } from 'lucide-react';
@@ -10,11 +10,26 @@ import PRDetail from './PRDetail';
 const PRView: React.FC = () => {
   const [selectedPR, setSelectedPR] = useState<string | null>(null);
   
+  useEffect(() => {
+    // Check if there's a PR ID in the URL hash
+    const hashPath = window.location.hash;
+    if (hashPath.startsWith('/#/prs/')) {
+      const prId = hashPath.replace('/#/prs/', '');
+      if (prId && pullRequests.some(pr => pr.id === prId)) {
+        setSelectedPR(prId);
+      }
+    }
+  }, []);
+  
   const handlePRClick = (prId: string) => {
     setSelectedPR(prId);
   };
   
   const handleBack = () => {
+    // Clear the hash when going back
+    if (window.location.hash.includes('/prs/')) {
+      window.history.pushState("", document.title, window.location.pathname);
+    }
     setSelectedPR(null);
   };
   

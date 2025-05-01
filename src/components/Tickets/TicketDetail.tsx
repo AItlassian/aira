@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Ticket, commits } from '@/data/mockData';
 import { 
@@ -76,6 +77,9 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose, onViewComm
   const [editingTaskTitle, setEditingTaskTitle] = useState("");
   const [selectedCommit, setSelectedCommit] = useState<string | null>(null);
   
+  // State to track if user is viewing a PR
+  const [viewingPR, setViewingPR] = useState<string | null>(null);
+  
   const getStatusColor = (status: string) => {
     switch(status) {
       case 'todo': return 'bg-muted text-muted-foreground';
@@ -117,6 +121,12 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose, onViewComm
     console.log(`Changing status of task ${taskId} to ${status}`);
   };
   
+  const handleViewPR = (prId: string) => {
+    // Navigate to the PR view
+    setViewingPR(prId);
+    // Here in a real app, you would navigate to the PR view or load the PR data
+  };
+  
   const renderFileDiff = () => {
     const commitData = commits.find(c => c.id === selectedCommit);
     
@@ -139,6 +149,14 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose, onViewComm
       </div>
     );
   };
+  
+  // If user is viewing a PR, navigate to PR view
+  if (viewingPR) {
+    // In a real app with routing, we would navigate to PR view
+    // For now, we'll redirect to PR tab in parent component
+    window.location.href = `/#/prs/${viewingPR}`;
+    return null;
+  }
   
   // If a commit is selected, show the commit detail view
   if (selectedCommit) {
@@ -229,7 +247,12 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose, onViewComm
                 <div className="text-sm font-medium mb-2">Related Pull Requests</div>
                 <div className="flex gap-2">
                   {ticket.relatedPRs.map(prId => (
-                    <Badge key={prId} variant="outline" className="bg-primary/10 text-primary flex items-center gap-1">
+                    <Badge 
+                      key={prId} 
+                      variant="outline" 
+                      className="bg-primary/10 text-primary flex items-center gap-1 cursor-pointer hover:bg-primary/20 transition-colors"
+                      onClick={() => handleViewPR(prId)}
+                    >
                       <GitPullRequest size={12} />
                       PR #{prId.replace('pr', '')}
                     </Badge>
