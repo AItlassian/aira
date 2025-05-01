@@ -109,7 +109,7 @@ const PRDetail: React.FC<PRDetailProps> = ({ pullRequest, onClose }) => {
             </Button>
             <h2 className="text-xl font-bold">Commit: {selectedCommit}</h2>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={fromTicket ? () => window.history.back() : onClose}>
             <X size={16} />
           </Button>
         </div>
@@ -138,7 +138,7 @@ const PRDetail: React.FC<PRDetailProps> = ({ pullRequest, onClose }) => {
             </Button>
             <h2 className="text-xl font-bold">File: {selectedFile}</h2>
           </div>
-          <Button variant="ghost" size="sm" onClick={onClose}>
+          <Button variant="ghost" size="sm" onClick={fromTicket ? () => window.history.back() : onClose}>
             <X size={16} />
           </Button>
         </div>
@@ -175,7 +175,7 @@ const PRDetail: React.FC<PRDetailProps> = ({ pullRequest, onClose }) => {
             <h2 className="text-xl font-bold">Pull Request #{pullRequest.id.replace('pr', '')}</h2>
           </div>
         </div>
-        <Button variant="ghost" size="sm" onClick={onClose}>
+        <Button variant="ghost" size="sm" onClick={fromTicket ? () => window.history.back() : onClose}>
           <X size={16} />
         </Button>
       </div>
