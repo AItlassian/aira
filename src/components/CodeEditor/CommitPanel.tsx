@@ -97,10 +97,11 @@ const CommitPanel: React.FC = () => {
           </Button>
           <Button 
             variant="outline" 
-            className="w-full flex items-center gap-2"
+            className="w-full"
             onClick={handleCreatePR}
+            title="Create Pull Request"
           >
-            <GitPullRequest size={14} />
+            <GitPullRequest size={16} className="mr-2" />
             <span>Create Pull Request</span>
           </Button>
         </div>
