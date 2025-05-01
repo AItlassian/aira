@@ -1,10 +1,8 @@
-
 import React, { useState } from 'react';
 import { documentations } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
 import { Plus, FileText, GitPullRequest } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import DocumentationDetail from './DocumentationDetail';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
@@ -103,10 +101,7 @@ const DocumentationView: React.FC = () => {
                   {doc.content.length > 250 && '...'}
                 </pre>
               </div>
-              <div className="pt-2 flex items-center justify-between">
-                <Badge variant="outline" className="bg-primary/10 text-primary">
-                  {doc.relatedPRs.length} PR{doc.relatedPRs.length > 1 ? 's' : ''}
-                </Badge>
+              <div className="pt-2 flex items-center justify-end">
                 <TooltipProvider>
                   <div className="flex gap-1">
                     {doc.relatedPRs.map(prId => (
