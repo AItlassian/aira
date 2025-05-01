@@ -57,9 +57,17 @@ interface FileTreeProps {
   structure: Record<string, FileSystemItem>;
   level?: number;
   onFileSelect?: (filePath: string) => void;
+  activeFilePath?: string;
+  currentPath?: string;
 }
 
-const FileTree: React.FC<FileTreeProps> = ({ structure, level = 0, onFileSelect }) => {
+const FileTree: React.FC<FileTreeProps> = ({ 
+  structure, 
+  level = 0, 
+  onFileSelect, 
+  activeFilePath,
+  currentPath = '' 
+}) => {
   const [expandedFolders, setExpandedFolders] = useState<Record<string, boolean>>({
     'src': true,
     'src/components': true,
@@ -72,10 +80,35 @@ const FileTree: React.FC<FileTreeProps> = ({ structure, level = 0, onFileSelect 
     }));
   };
 
+  // Auto-expand folders containing the active file
+  React.useEffect(() => {
+    if (activeFilePath) {
+      // Split the path into segments
+      const pathParts = activeFilePath.split('/');
+      
+      // Create an updated expanded folders object
+      const updatedExpandedFolders = { ...expandedFolders };
+      
+      // Build paths incrementally and set them to expanded
+      let currentFolderPath = '';
+      pathParts.slice(0, -1).forEach(part => {
+        currentFolderPath = currentFolderPath ? `${currentFolderPath}/${part}` : part;
+        updatedExpandedFolders[currentFolderPath] = true;
+      });
+      
+      // Update state if anything changed
+      if (Object.keys(updatedExpandedFolders).length !== Object.keys(expandedFolders).length ||
+          Object.keys(updatedExpandedFolders).some(key => updatedExpandedFolders[key] !== expandedFolders[key])) {
+        setExpandedFolders(updatedExpandedFolders);
+      }
+    }
+  }, [activeFilePath]);
+
   const renderItems = (items: Record<string, FileSystemItem>, currentPath = '') => {
     return Object.entries(items).map(([name, item]) => {
       const path = currentPath ? `${currentPath}/${name}` : name;
       const isExpanded = expandedFolders[path] || false;
+      const isActive = path === activeFilePath;
       
       if (item.type === 'folder') {
         return (
@@ -99,6 +132,8 @@ const FileTree: React.FC<FileTreeProps> = ({ structure, level = 0, onFileSelect 
                   structure={item.children} 
                   level={level + 1} 
                   onFileSelect={onFileSelect}
+                  activeFilePath={activeFilePath}
+                  currentPath={path}
                 />
               </div>
             )}
@@ -108,11 +143,13 @@ const FileTree: React.FC<FileTreeProps> = ({ structure, level = 0, onFileSelect 
         return (
           <div 
             key={path}
-            className="flex items-center py-1 px-2 hover:bg-muted cursor-pointer"
+            className={`flex items-center py-1 px-2 hover:bg-muted cursor-pointer ${
+              isActive ? 'bg-primary/10 text-primary' : ''
+            }`}
             style={{ paddingLeft: `${(level + 1) * 16}px` }}
             onClick={() => onFileSelect && onFileSelect(path)}
           >
-            <File size={16} className="mr-1 text-muted-foreground" />
+            <File size={16} className={`mr-1 ${isActive ? 'text-primary' : 'text-muted-foreground'}`} />
             <span className="text-sm">{name}</span>
           </div>
         );
@@ -120,15 +157,16 @@ const FileTree: React.FC<FileTreeProps> = ({ structure, level = 0, onFileSelect 
     });
   };
 
-  return <>{renderItems(structure)}</>;
+  return <>{renderItems(structure, currentPath)}</>;
 };
 
 // Define props interface for RepoStructure
 interface RepoStructureProps {
   onFileSelect?: (filePath: string) => void;
+  activeFilePath?: string;
 }
 
-const RepoStructure: React.FC<RepoStructureProps> = ({ onFileSelect }) => {
+const RepoStructure: React.FC<RepoStructureProps> = ({ onFileSelect, activeFilePath }) => {
   return (
     <div className="w-64 border-r border-border bg-card">
       <div className="p-2 border-b border-border">
@@ -136,7 +174,11 @@ const RepoStructure: React.FC<RepoStructureProps> = ({ onFileSelect }) => {
       </div>
       <ScrollArea className="h-[calc(100vh-10rem)]">
         <div className="p-2">
-          <FileTree structure={repoStructure} onFileSelect={onFileSelect} />
+          <FileTree 
+            structure={repoStructure} 
+            onFileSelect={onFileSelect} 
+            activeFilePath={activeFilePath} 
+          />
         </div>
       </ScrollArea>
     </div>
