@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Ticket, commits } from '@/data/mockData';
 import { 
@@ -97,8 +96,11 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose, onViewComm
   };
   
   const handleTaskDoubleClick = (task: Ticket['subtasks'][0]) => {
-    setEditingTaskId(task.id);
-    setEditingTaskTitle(task.title);
+    // Only allow editing for tasks that are not done
+    if (task.status !== 'done') {
+      setEditingTaskId(task.id);
+      setEditingTaskTitle(task.title);
+    }
   };
   
   const saveTaskEdit = (taskId: string) => {
@@ -252,13 +254,12 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose, onViewComm
                 <TableRow>
                   <TableHead className="w-[60%]">Task</TableHead>
                   <TableHead className="w-[20%]">Status</TableHead>
-                  <TableHead className="w-[10%]">Commit</TableHead>
-                  <TableHead className="w-[10%]">Actions</TableHead>
+                  <TableHead className="w-[20%]">Commit</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {ticket.subtasks.map(task => (
-                  <TableRow key={task.id}>
+                  <TableRow key={task.id} className="group">
                     <TableCell>
                       {editingTaskId === task.id ? (
                         <Input 
@@ -273,7 +274,7 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose, onViewComm
                         />
                       ) : (
                         <div 
-                          className={`${task.status === 'done' ? 'line-through text-muted-foreground' : ''} cursor-text`}
+                          className={`${task.status === 'done' ? 'line-through text-muted-foreground' : ''} ${task.status !== 'done' ? 'cursor-text' : ''}`}
                           onDoubleClick={() => handleTaskDoubleClick(task)}
                         >
                           {task.title}
@@ -315,36 +316,6 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose, onViewComm
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {editingTaskId === task.id ? (
-                        <div className="flex gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-7 w-7 p-0"
-                            onClick={() => saveTaskEdit(task.id)}
-                          >
-                            <Check size={16} className="text-green-500" />
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-7 w-7 p-0"
-                            onClick={cancelTaskEdit}
-                          >
-                            <X size={16} className="text-red-500" />
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100"
-                          onClick={() => handleTaskDoubleClick(task)}
-                        >
-                        </Button>
                       )}
                     </TableCell>
                   </TableRow>
