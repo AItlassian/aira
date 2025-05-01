@@ -19,6 +19,8 @@ interface PRDetailProps {
   onClose: () => void;
   fromTicket?: boolean;
   ticketId?: string | null;
+  fromDoc?: boolean;
+  docId?: string | null;
 }
 
 // Mock code diff data
@@ -43,7 +45,14 @@ const mockDiff = `
     }
 `;
 
-const PRDetail: React.FC<PRDetailProps> = ({ pullRequest, onClose, fromTicket = false, ticketId = null }) => {
+const PRDetail: React.FC<PRDetailProps> = ({ 
+  pullRequest, 
+  onClose, 
+  fromTicket = false, 
+  ticketId = null,
+  fromDoc = false,
+  docId = null 
+}) => {
   const getStatusColor = () => {
     switch(pullRequest.status) {
       case 'open': return 'bg-green-500/20 text-green-500';
@@ -57,12 +66,16 @@ const PRDetail: React.FC<PRDetailProps> = ({ pullRequest, onClose, fromTicket = 
   const [selectedCommit, setSelectedCommit] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   
-  // Handle back to PR list navigation
+  // Handle back navigation
   const handleBackToPRs = () => {
     if (fromTicket && ticketId) {
       // Go back to the specific ticket detail page
       window.location.hash = `/tickets/${ticketId}`;
       onClose(); // Also call onClose to properly reset UI state
+    } else if (fromDoc && docId) {
+      // Go back to the specific documentation detail page
+      window.location.hash = `/docs/${docId}`;
+      onClose();
     } else {
       // For normal PR list navigation
       window.location.hash = '/prs';
@@ -75,6 +88,9 @@ const PRDetail: React.FC<PRDetailProps> = ({ pullRequest, onClose, fromTicket = 
     if (fromTicket && ticketId) {
       window.location.hash = `/tickets/${ticketId}`; // Change URL hash to specific ticket
       onClose(); // Then call onClose to reset UI state
+    } else if (fromDoc && docId) {
+      window.location.hash = `/docs/${docId}`; // Change URL hash to specific doc
+      onClose();
     } else {
       onClose();
     }
@@ -180,7 +196,9 @@ const PRDetail: React.FC<PRDetailProps> = ({ pullRequest, onClose, fromTicket = 
             className="gap-1"
           >
             <ChevronLeft size={16} />
-            <span>{fromTicket ? "Back to Ticket" : "All Pull Requests"}</span>
+            <span>
+              {fromTicket ? "Back to Ticket" : fromDoc ? "Back to Documentation" : "All Pull Requests"}
+            </span>
           </Button>
           <div className="ml-4">
             <h2 className="text-xl font-bold">Pull Request #{pullRequest.id.replace('pr', '')}</h2>

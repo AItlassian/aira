@@ -15,6 +15,8 @@ const PRView: React.FC<PRViewProps> = () => {
   const [selectedPR, setSelectedPR] = useState<string | null>(null);
   const [fromTicket, setFromTicket] = useState<boolean>(false);
   const [ticketId, setTicketId] = useState<string | null>(null);
+  const [fromDoc, setFromDoc] = useState<boolean>(false);
+  const [docId, setDocId] = useState<string | null>(null);
   
   useEffect(() => {
     // Check if there's a PR ID in the URL hash
@@ -23,6 +25,7 @@ const PRView: React.FC<PRViewProps> = () => {
       const prId = hashPath.replace(/#\/prs\/([^?]+).*/, '$1');
       if (prId && pullRequests.some(pr => pr.id === prId)) {
         setSelectedPR(prId);
+        
         // Check if we came from ticket view
         setFromTicket(hashPath.includes('fromTicket=true'));
         
@@ -30,6 +33,15 @@ const PRView: React.FC<PRViewProps> = () => {
         const ticketIdMatch = hashPath.match(/ticketId=([^&]+)/);
         if (ticketIdMatch && ticketIdMatch[1]) {
           setTicketId(ticketIdMatch[1]);
+        }
+
+        // Check if we came from doc view
+        setFromDoc(hashPath.includes('fromDoc='));
+        
+        // Extract doc ID if present
+        const docIdMatch = hashPath.match(/fromDoc=([^&]+)/);
+        if (docIdMatch && docIdMatch[1]) {
+          setDocId(docIdMatch[1]);
         }
       }
     }
@@ -50,12 +62,25 @@ const PRView: React.FC<PRViewProps> = () => {
           } else {
             setTicketId(null);
           }
+
+          // Check if we came from doc view
+          setFromDoc(hash.includes('fromDoc='));
+          
+          // Extract doc ID if present
+          const docIdMatch = hash.match(/fromDoc=([^&]+)/);
+          if (docIdMatch && docIdMatch[1]) {
+            setDocId(docIdMatch[1]);
+          } else {
+            setDocId(null);
+          }
         }
-      } else if (hash === '#/prs' || hash === '' || hash.startsWith('#/tickets')) {
-        // Reset to PR list view or handle ticket navigation
+      } else if (hash === '#/prs' || hash === '' || hash.startsWith('#/tickets') || hash.startsWith('#/docs')) {
+        // Reset to PR list view or handle ticket/documentation navigation
         setSelectedPR(null);
         setFromTicket(false);
         setTicketId(null);
+        setFromDoc(false);
+        setDocId(null);
       }
     };
     
@@ -71,11 +96,16 @@ const PRView: React.FC<PRViewProps> = () => {
     setSelectedPR(prId);
     setFromTicket(false);
     setTicketId(null);
+    setFromDoc(false);
+    setDocId(null);
   };
   
   const handleBack = () => {
     if (fromTicket && ticketId) {
       window.location.hash = `/tickets/${ticketId}`;
+      setSelectedPR(null);
+    } else if (fromDoc && docId) {
+      window.location.hash = `/docs/${docId}`;
       setSelectedPR(null);
     } else {
       window.location.hash = '/prs';
@@ -93,7 +123,9 @@ const PRView: React.FC<PRViewProps> = () => {
           pullRequest={selectedPullRequest} 
           onClose={handleBack}
           fromTicket={fromTicket}
-          ticketId={ticketId} 
+          ticketId={ticketId}
+          fromDoc={fromDoc}
+          docId={docId} 
         />
       </div>
     );
