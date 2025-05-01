@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { pullRequests } from '@/data/mockData';
 import { Button } from '@/components/ui/button';
@@ -46,7 +47,7 @@ const PRView: React.FC = () => {
   
   const handlePRClick = (prId: string) => {
     // Update the URL hash when selecting a PR directly
-    window.history.pushState({}, "", `#/prs/${prId}`);
+    window.location.hash = `#/prs/${prId}`;
     setSelectedPR(prId);
     setFromTicket(false);
   };

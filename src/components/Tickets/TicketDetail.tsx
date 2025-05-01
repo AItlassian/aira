@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Ticket, commits } from '@/data/mockData';
 import { 
@@ -121,7 +122,7 @@ const TicketDetail: React.FC<TicketDetailProps> = ({ ticket, onClose, onViewComm
   };
   
   const handleViewPR = (prId: string) => {
-    // Update URL hash to navigate to the PR view with fromTicket parameter
+    // Navigate directly to the PR view with fromTicket parameter
     window.location.hash = `/prs/${prId}?fromTicket=true`;
   };
   
